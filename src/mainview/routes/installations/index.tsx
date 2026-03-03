@@ -23,6 +23,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   ChevronsUpDownIcon,
   FolderIcon,
+  PlayIcon,
   PlusIcon,
   RefreshCcw,
   Trash2Icon,
@@ -83,6 +84,13 @@ function RouteComponent() {
     mutationFn: async (version: string) => electroview.rpc?.request.cancelDownload({ version }),
     onSuccess: (_, version) => {
       setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+    },
+  });
+
+  const { mutate: playInstallation } = useMutation({
+    mutationFn: async (path: string) => electroview.rpc?.request.playWithInstallation({ path }),
+    onError: (error) => {
+      console.error("Failed to play with installation:", error);
     },
   });
 
@@ -297,6 +305,19 @@ function RouteComponent() {
                         </div>
                       </div>
                       <Group>
+                        <TooltipTrigger
+                          handle={tooltipHandle}
+                          payload={() => "Play with installation"}
+                          render={
+                            <Button
+                              onClick={() => playInstallation(installation.path)}
+                              size="icon-sm"
+                              variant="outline"
+                            />
+                          }
+                        >
+                          <PlayIcon className="size-3.5" />
+                        </TooltipTrigger>
                         <TooltipTrigger
                           handle={tooltipHandle}
                           payload={() => "Open installation folder"}

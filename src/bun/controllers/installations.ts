@@ -3,7 +3,9 @@ import { existsSync, readFileSync, rmSync, statSync, writeFileSync } from "fs";
 import { exists, readdir, readFile, stat } from "fs/promises";
 import { join } from "path";
 import {
+  getPlatform,
   getInstallationsPath as getUtilsInstallationsPath,
+  getVersionsPath,
   oldInstallationsConfig,
 } from "../utils";
 
@@ -125,5 +127,40 @@ export const installationController = {
   },
   openInstallationFolder: async ({ path }: { path: string }): Promise<void> => {
     Utils.openPath(path);
+  },
+  playWithInstallation: async ({ path }: { path: string }) => {
+    const configPath = join(path, "installation.json");
+    if (!existsSync(configPath)) {
+      console.error(`[installations.ts] Installation config not found: ${configPath}`);
+      return;
+    }
+    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+    const versionsPath = getVersionsPath();
+    const versionPath = join(versionsPath, config.version || "");
+    if (!existsSync(versionPath)) {
+      console.error(`[installations.ts] Version not found for installation: ${versionPath}`);
+      return;
+    }
+    const platform = getPlatform();
+    const execPath =
+      platform === "windows"
+        ? join(versionPath, "vintagestory.exe")
+        : join(versionPath, "vintagestory");
+    if (!existsSync(execPath)) {
+      console.error(
+        `[installations.ts] Vintage Story executable not found for installation: ${versionPath}`,
+      );
+      return;
+    }
+    console.log(
+      `[installations.ts] Playing with installation: ${config.name} (version: ${config.version})`,
+    );
+    // Implement the logic to play with the installation
+    Bun.spawn([
+      execPath,
+      "--dataPath",
+      path,
+      ...(config.startParams ? config.startParams.split(" ") : []),
+    ]);
   },
 };

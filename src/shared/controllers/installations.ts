@@ -28,5 +28,11 @@ export type InstallationController = RPCSchema<{
       };
       response: boolean;
     };
+    playWithInstallation: {
+      params: {
+        path: string;
+      };
+      response: void;
+    };
   };
 }>;
