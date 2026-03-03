@@ -1,6 +1,6 @@
 import { Utils } from "electrobun";
 import { createWriteStream, existsSync, mkdirSync, rmSync, statSync } from "fs";
-import { readdir, stat } from "fs/promises";
+import { cp, readdir, stat } from "fs/promises";
 import { join } from "path";
 import * as v from "valibot";
 import { mainWindow } from "..";
@@ -244,6 +244,23 @@ export const versionController = {
       console.log("[versions.ts] Created archive object");
       await archive.extract(versionFolder);
       console.log("[versions.ts] Extraction complete");
+
+      // Check if there's a .app folder and extract its contents
+      const extractedContents = await readdir(versionFolder);
+      const appFolder = extractedContents.find((entry) => entry.endsWith(".app"));
+      if (appFolder) {
+        console.log("[versions.ts] Found .app folder:", appFolder);
+        const appPath = join(versionFolder, appFolder);
+        const appContents = await readdir(appPath);
+        for (const entry of appContents) {
+          const srcPath = join(appPath, entry);
+          const destPath = join(versionFolder, entry);
+          await cp(srcPath, destPath, { recursive: true });
+        }
+        // Remove the .app folder
+        rmSync(appPath, { recursive: true, force: true });
+        console.log("[versions.ts] Moved .app contents to version folder");
+      }
 
       // Clean up temp file
       console.log("[versions.ts] Cleaning up temp file");
