@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Story Forge</title>
+    <script>
+      const _themeScript = (() => {
+        try {
+          const storedTheme = localStorage.getItem("ui-theme") || "system";
+          const validTheme = ["light", "dark", "system"].includes(storedTheme)
+            ? storedTheme
+            : "system";
+
+          if (validTheme === "system") {
+            const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+            document.documentElement.classList.add(systemTheme, "system");
+          } else {
+            document.documentElement.classList.add(validTheme);
+          }
+        } catch {
+          const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+          document.documentElement.classList.add(systemTheme, "system");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/main.tsx"></script>
+  </body>
+</html>
