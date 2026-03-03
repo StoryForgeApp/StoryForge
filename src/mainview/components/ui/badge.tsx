@@ -20,7 +20,8 @@ const badgeVariants = cva(
         success: "bg-green-100 text-green-800 [a]:hover:bg-green-200",
         "outline-success":
           "border-green-300 text-muted-foreground [a]:hover:bg-green-100 focus-visible:ring-green-300",
-        warning: "bg-yellow-100 dark:bg-yellow-300 text-yellow-800 [a]:hover:bg-yellow-200",
+        warning:
+          "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 [a]:hover:bg-yellow-200",
         "outline-warning":
           "border-yellow-300 text-muted-foreground [a]:hover:bg-yellow-100 focus-visible:ring-yellow-300",
         info: "bg-blue-100 text-blue-800 [a]:hover:bg-blue-200",
