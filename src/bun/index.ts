@@ -1,11 +1,25 @@
 import type { MyWebviewRPCType } from "@/shared/rpc";
-import { BrowserView, BrowserWindow, Updater } from "electrobun/bun";
+import { BrowserView, BrowserWindow, Screen, Session, Updater } from "electrobun/bun";
 import { installationController } from "./controllers/installations";
 import { serverController } from "./controllers/servers";
 import { versionController } from "./controllers/versions";
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
+
+const session = Session.fromPartition("persist:storyforge");
+
+function getDisplayAtCursor() {
+  const cursor = Screen.getCursorScreenPoint();
+  const displays = Screen.getAllDisplays();
+
+  return (
+    displays.find((display) => {
+      const { x, y, width, height } = display.bounds;
+      return cursor.x >= x && cursor.x < x + width && cursor.y >= y && cursor.y < y + height;
+    }) || Screen.getPrimaryDisplay()
+  );
+}
 
 const myWebviewRPC = BrowserView.defineRPC<MyWebviewRPCType>({
   handlers: {
@@ -38,12 +52,37 @@ async function getMainViewUrl(): Promise<string> {
 // Create the main application window
 const url = await getMainViewUrl();
 
+const windowHeight = Number(session.cookies.get({ name: "windowHeight" }));
+const windowWidth = Number(session.cookies.get({ name: "windowWidth" }));
+const windowX = Number(session.cookies.get({ name: "windowX" }));
+const windowY = Number(session.cookies.get({ name: "windowY" }));
+
+console.log({
+  windowHeight,
+  windowWidth,
+  windowX,
+  windowY,
+});
+
+const height = Number.isNaN(windowHeight) || windowHeight === 0 ? 700 : windowHeight;
+const width = Number.isNaN(windowWidth) || windowWidth === 0 ? 900 : windowWidth;
+const targetDisplay = getDisplayAtCursor();
+
+const x =
+  Number.isNaN(windowX) || windowX === 0
+    ? Math.round((targetDisplay.workArea.width - width) / 2) + targetDisplay.workArea.x
+    : windowX;
+const y =
+  Number.isNaN(windowY) || windowY === 0
+    ? Math.round((targetDisplay.workArea.height - height) / 2) + targetDisplay.workArea.y
+    : windowY;
+
 export const mainWindow = new BrowserWindow({
   frame: {
-    height: 700,
-    width: 900,
-    x: 200,
-    y: 200,
+    height,
+    width,
+    x,
+    y,
   },
   partition: "persist:storyforge",
   rpc: myWebviewRPC,
