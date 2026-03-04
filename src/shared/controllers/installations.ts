@@ -34,5 +34,22 @@ export type InstallationController = RPCSchema<{
       };
       response: void;
     };
+    createInstallation: {
+      params: {
+        name: string;
+        version: string;
+        startParams: string;
+      };
+      response: boolean;
+    };
+    updateInstallation: {
+      params: {
+        path: string;
+        name?: string;
+        version?: string;
+        startParams?: string;
+      };
+      response: boolean;
+    };
   };
 }>;
