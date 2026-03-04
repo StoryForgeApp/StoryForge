@@ -88,14 +88,10 @@ function RouteComponent() {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    electroview.rpc?.addMessageListener("downloadProgress", ({ progress }) => {
-      console.log(`Download progress: ${progress}%`);
-    });
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      electroview.rpc?.removeMessageListener("downloadProgress", () => {});
     };
-  }, [isMac, electroview.rpc]);
+  }, [isMac]);
 
   return (
     <div className="h-full grid grid-rows-[auto_1fr] p-2">

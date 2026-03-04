@@ -1,5 +1,6 @@
 import type { RPCSchema } from "electrobun";
 import { InstallationController } from "./controllers/installations";
+import { ModController } from "./controllers/mods";
 import type { ServerController } from "./controllers/servers";
 import type { VersionController } from "./controllers/versions";
 
@@ -9,7 +10,8 @@ export type MyWebviewRPCType = {
   bun: {
     requests: VersionController["requests"] &
       ServerController["requests"] &
-      InstallationController["requests"];
+      InstallationController["requests"] &
+      ModController["requests"];
     messages: {
       logToBun: {
         msg: string;
@@ -27,7 +29,7 @@ export type MyWebviewRPCType = {
       cancelDownload: {
         id: string;
       };
-    };
+    } & ModController["messages"];
   };
   // functions that execute in the browser context
   webview: RPCSchema<{
@@ -54,6 +56,6 @@ export type MyWebviewRPCType = {
         status: "downloading" | "completed" | "cancelled" | "error";
         message: string;
       };
-    };
+    } & ModController["messages"];
   }>;
 };

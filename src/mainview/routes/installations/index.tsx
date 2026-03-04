@@ -19,11 +19,12 @@ import { useInstallations } from "@/mainview/hooks/use-installations";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ChevronsUpDownIcon,
   DownloadCloudIcon,
   FolderIcon,
+  PackageSearchIcon,
   PlayIcon,
   PlusIcon,
   RefreshCcw,
@@ -86,6 +87,7 @@ function RouteComponent() {
       });
     },
   });
+  const navigate = useNavigate();
   const { electroview } = Route.useRouteContext();
   const deleteTimeoutRef = useRef<NodeJS.Timeout>(null);
   const [downloadingVersions, setDownloadingVersions] = useState<DownloadingVersion[]>([]);
@@ -444,6 +446,24 @@ function RouteComponent() {
                             <DownloadCloudIcon className="size-3.5" />
                           </TooltipTrigger>
                         )}
+                        <TooltipTrigger
+                          handle={tooltipHandle}
+                          payload={() => "Manage mods"}
+                          render={
+                            <Button
+                              onClick={() =>
+                                navigate({
+                                  to: "/installations/mods",
+                                  search: { path: installation.path },
+                                })
+                              }
+                              size="icon-sm"
+                              variant="outline"
+                            />
+                          }
+                        >
+                          <PackageSearchIcon className="size-3.5" />
+                        </TooltipTrigger>
                         <TooltipTrigger
                           handle={tooltipHandle}
                           payload={() => "Open installation folder"}
