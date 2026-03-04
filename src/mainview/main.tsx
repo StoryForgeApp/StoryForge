@@ -1,6 +1,7 @@
 import type { MyWebviewRPCType } from "@/shared/rpc";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { QueryClient } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { Electroview } from "electrobun/view";
@@ -48,7 +49,7 @@ const router = createRouter({
   Wrap: ({ children }) => (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <ThemeProvider>{children}</ThemeProvider>
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      <ReactQueryDevtools initialIsOpen={false} />
     </PersistQueryClientProvider>
   ),
 });
