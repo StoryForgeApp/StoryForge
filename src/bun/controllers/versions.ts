@@ -75,7 +75,7 @@ export const versionController = {
     }
   },
   deleteVersion: async ({ version }: { version: string }): Promise<boolean> => {
-    const versionsPath = getUtilsVersionsPath();
+    const versionsPath = await getUtilsVersionsPath();
     const versionFolder = join(versionsPath, version);
     if (await exists(versionFolder)) {
       await rm(versionFolder, { force: true, recursive: true });
@@ -102,7 +102,7 @@ export const versionController = {
 
     const platform = getPlatform();
     const tempDir = Utils.paths.temp;
-    const versionsPath = getUtilsVersionsPath();
+    const versionsPath = await getUtilsVersionsPath();
 
     console.log("[versions.ts] Platform:", platform);
     console.log("[versions.ts] Temp directory:", tempDir);
@@ -355,7 +355,7 @@ export const versionController = {
   },
   getInstalledVersions: async (): Promise<{ version: string; size: number }[]> => {
     // Simulate fetching installed versions
-    const versionsPath = getUtilsVersionsPath();
+    const versionsPath = await getUtilsVersionsPath();
     const installedVersions = await readdir(versionsPath);
 
     // Filter out non-directory entries (in case there are any files in the versions folder)
@@ -386,7 +386,7 @@ export const versionController = {
     return getUtilsVersionsPath();
   },
   openVersionFolder: async ({ version }: { version: string }): Promise<void> => {
-    const versionsPath = getUtilsVersionsPath();
+    const versionsPath = await getUtilsVersionsPath();
     Utils.openPath(join(versionsPath, version));
   },
 };
