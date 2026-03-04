@@ -1,11 +1,17 @@
 import { cn } from "@/lib/utils";
 import { VersionCombobox } from "@/mainview/components/comboboxes/version.combobox";
+import { ModVersionForm } from "@/mainview/components/forms/mod.version.form";
 import { Button } from "@/mainview/components/ui/button";
 import { ComboboxTrigger, ComboboxValue } from "@/mainview/components/ui/combobox";
 import { Group } from "@/mainview/components/ui/group";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/mainview/components/ui/input-group";
 import { Kbd, KbdGroup } from "@/mainview/components/ui/kbd";
-import { Popover, PopoverPopup, PopoverTrigger } from "@/mainview/components/ui/popover";
+import {
+  Popover,
+  PopoverCreateHandle,
+  PopoverPopup,
+  PopoverTrigger,
+} from "@/mainview/components/ui/popover";
 import { Progress } from "@/mainview/components/ui/progress";
 import { ScrollArea } from "@/mainview/components/ui/scroll-area";
 import {
@@ -52,6 +58,7 @@ export const Route = createFileRoute("/installations/mods")({
 });
 
 const tooltipHandle = TooltipCreateHandle<React.ComponentType>();
+const popoverHandle = PopoverCreateHandle<React.ComponentType>();
 
 const sortingOptions: {
   label: string;
@@ -107,7 +114,7 @@ function RouteComponent() {
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  const { mutate: removeMod } = useMutation({
+  const { mutateAsync: removeMod } = useMutation({
     mutationFn: async ({ modzip }: { modzip: string }) =>
       electroview.rpc?.request.removeMod({ modzip: modzip, path }),
     onSuccess: async (resp) => {
@@ -126,7 +133,7 @@ function RouteComponent() {
     },
   });
 
-  const { mutate: downloadMod } = useMutation({
+  const { mutateAsync: downloadMod } = useMutation({
     mutationFn: async ({ url, modid }: { url: string; modid: number }) =>
       electroview.rpc?.request.installMod({ url, path, modid }),
     onError: (_, options) => {
@@ -205,7 +212,7 @@ function RouteComponent() {
       if (!latestVersion) {
         throw new Error("No versions found for mod " + modid);
       }
-      downloadMod({ url: latestVersion.mainfile, modid });
+      await downloadMod({ url: latestVersion.mainfile, modid });
     },
     mutationKey: ["downloadLatest"],
   });
@@ -437,7 +444,21 @@ function RouteComponent() {
                       payload={() =>
                         installedMod ? "Switch version" : "Download specific version"
                       }
-                      render={<Button size="icon-sm" variant="outline" />}
+                      render={
+                        <PopoverTrigger
+                          handle={popoverHandle}
+                          payload={() => (
+                            <ModVersionForm
+                              modid={mod.modid}
+                              removeMod={removeMod}
+                              downloadMod={downloadMod}
+                              installed={installedMod}
+                              handle={popoverHandle}
+                            />
+                          )}
+                          render={<Button size="icon-sm" variant="outline" />}
+                        />
+                      }
                     >
                       {installedMod ? (
                         <RefreshCcw className="size-3.5" />
@@ -472,6 +493,13 @@ function RouteComponent() {
           <TooltipPopup>{Payload !== undefined && <Payload />}</TooltipPopup>
         )}
       </Tooltip>
+      <Popover handle={popoverHandle}>
+        {({ payload: Payload }) => (
+          <PopoverPopup align="center" side="left">
+            {Payload !== undefined && <Payload />}
+          </PopoverPopup>
+        )}
+      </Popover>
     </div>
   );
 }
