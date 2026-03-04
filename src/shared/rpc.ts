@@ -4,14 +4,28 @@ import { ServerController } from "@/bun/controllers/servers";
 import { UtilsController } from "@/bun/controllers/utils";
 import { VersionController } from "@/bun/controllers/versions";
 import type { RPCSchema } from "electrobun";
-import { DeepMergeAll } from "./helper";
 
 // src/shared/types.ts
 export type StoryForgeRPCType = {
   // functions that execute in the main process
-  bun: DeepMergeAll<[ServerController, VersionController, InstallationController, UtilsController]>;
+  bun: {
+    requests: ServerController["requests"] &
+      InstallationController["requests"] &
+      ModController["requests"] &
+      VersionController["requests"] &
+      UtilsController["requests"];
+    messages: ServerController["messages"] &
+      InstallationController["messages"] &
+      ModController["messages"] &
+      VersionController["messages"] &
+      UtilsController["messages"];
+  };
   // functions that execute in the browser context
   webview: RPCSchema<{
-    messages: VersionController["messages"] & ModController["messages"];
+    messages: VersionController["messages"] &
+      ModController["messages"] &
+      InstallationController["messages"] &
+      ServerController["messages"] &
+      UtilsController["messages"];
   }>;
 };

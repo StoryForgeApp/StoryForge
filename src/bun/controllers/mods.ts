@@ -6,6 +6,72 @@ import { join } from "path";
 import { mainWindow } from "..";
 import { getModsCachePath } from "../utils";
 
+interface Mod {
+  modid: number;
+  assetid: number;
+  downloads: number;
+  follows: number;
+  trendingpoints: number;
+  comments: number;
+  name: string;
+  summary: string;
+  modidstrs: string[];
+  author: string;
+  urlalias: string | null;
+  side: "both" | "client" | "server";
+  type: string;
+  logo: string | null;
+  tags: string[];
+  lastreleased: string;
+}
+
+interface ModResponse {
+  mod: ModInfo;
+  statuscode: string;
+}
+
+interface ModInfo {
+  modid: number;
+  assetid: number;
+  name: string;
+  text?: string;
+  author: string;
+  urlalias: string | null;
+  logofilename: string | null;
+  logofile: string | null;
+  logofiledb: string | null;
+  homepageurl: string;
+  sourcecodeurl: string;
+  trailervideourl: string;
+  issuetrackerurl: string;
+  wikiurl: string;
+  downloads: number;
+  follows: number;
+  trendingpoints: number;
+  comments: number;
+  side: "both" | "client" | "server";
+  type: string;
+  created: string;
+  lastreleased: string;
+  lastmodified: string;
+  tags: string[];
+  releases: Release[];
+  screenshots: string[];
+}
+
+interface Release {
+  releaseid: number;
+  mainfile: string;
+  filename: string;
+  fileid: number;
+  downloads: number;
+  tags: string[];
+  modidstr: string;
+  modversion: string;
+  created: string;
+  changelog: string;
+}
+
 const modsCachePath = await getModsCachePath();
 const modsCacheFile = join(modsCachePath, "cache.json");
 
@@ -284,7 +350,13 @@ export const modController = {
     // Return immediately to the frontend
     return { success: true, message: "Download started" };
   },
-  fetchMods: async ({ search, versions = [] }: { search?: string; versions: string[] }) => {
+  fetchMods: async ({
+    search,
+    versions = [],
+  }: {
+    search?: string;
+    versions: string[];
+  }): Promise<Mod[]> => {
     const url = new URL(`https://mods.vintagestory.at/api/mods`);
     if (search) {
       url.searchParams.append("text", search);
@@ -295,16 +367,16 @@ export const modController = {
       throw new Error(`Failed to fetch mods: ${response.statusText}`);
     }
     const modsText = await response.text();
-    const mods = Bun.JSON5.parse(modsText) as { mods: unknown[] };
+    const mods = Bun.JSON5.parse(modsText) as { mods: Mod[] };
     return mods.mods;
   },
-  fetchModInfo: async ({ modid }: { modid: number }) => {
+  fetchModInfo: async ({ modid }: { modid: number }): Promise<ModResponse> => {
     const response = await fetch(`https://mods.vintagestory.at/api/mod/${modid}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch mod info for modid ${modid}: ${response.statusText}`);
     }
     const modInfoText = await response.text();
-    const modInfo = Bun.JSON5.parse(modInfoText) as Record<string, any>;
+    const modInfo = Bun.JSON5.parse(modInfoText) as ModResponse;
     return modInfo;
   },
   getInstalledMods: async ({ path }: { path: string }) => {
