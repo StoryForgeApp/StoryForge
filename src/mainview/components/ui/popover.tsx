@@ -3,10 +3,26 @@
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 
 import { cn } from "@/lib/utils";
+import { ArrowSvg } from "./arrow";
 
 const PopoverCreateHandle = PopoverPrimitive.createHandle;
 
 const Popover = PopoverPrimitive.Root;
+
+function PopoverArrow({ className, ...props }: PopoverPrimitive.Arrow.Props) {
+  return (
+    <PopoverPrimitive.Arrow
+      className={cn(
+        "data-[side=bottom]:top-[-8px] data-[side=left]:right-[-13px] data-[side=left]:rotate-90 data-[side=right]:left-[-13px] data-[side=right]:-rotate-90 data-[side=top]:bottom-[-8px] data-[side=top]:rotate-180",
+        className,
+      )}
+      data-slot="popover-arrow"
+      {...props}
+    >
+      <ArrowSvg />
+    </PopoverPrimitive.Arrow>
+  );
+}
 
 function PopoverTrigger({ className, children, ...props }: PopoverPrimitive.Trigger.Props) {
   return (
@@ -24,6 +40,7 @@ function PopoverPopup({
   sideOffset = 4,
   alignOffset = 0,
   tooltipStyle = false,
+  showArrow = true,
   anchor,
   ...props
 }: PopoverPrimitive.Popup.Props & {
@@ -32,6 +49,7 @@ function PopoverPopup({
   sideOffset?: PopoverPrimitive.Positioner.Props["sideOffset"];
   alignOffset?: PopoverPrimitive.Positioner.Props["alignOffset"];
   tooltipStyle?: boolean;
+  showArrow?: boolean;
   anchor?: PopoverPrimitive.Positioner.Props["anchor"];
 }) {
   return (
@@ -55,6 +73,7 @@ function PopoverPopup({
           data-slot="popover-popup"
           {...props}
         >
+          {showArrow && <PopoverArrow />}
           <PopoverPrimitive.Viewport
             className={cn(
               "relative size-full max-h-(--available-height) overflow-clip px-(--viewport-inline-padding) py-4 [--viewport-inline-padding:--spacing(4)] has-data-[slot=calendar]:p-2 data-instant:transition-none **:data-current:data-ending-style:opacity-0 **:data-current:data-starting-style:opacity-0 **:data-previous:data-ending-style:opacity-0 **:data-previous:data-starting-style:opacity-0 **:data-current:w-[calc(var(--popup-width)-2*var(--viewport-inline-padding)-2px)] **:data-previous:w-[calc(var(--popup-width)-2*var(--viewport-inline-padding)-2px)] **:data-current:opacity-100 **:data-previous:opacity-100 **:data-current:transition-opacity **:data-previous:transition-opacity",
@@ -97,13 +116,14 @@ function PopoverDescription({ className, ...props }: PopoverPrimitive.Descriptio
 }
 
 export {
-  PopoverCreateHandle,
   Popover,
-  PopoverTrigger,
-  PopoverPopup,
-  PopoverPopup as PopoverContent,
-  PopoverTitle,
-  PopoverDescription,
+  PopoverArrow,
   PopoverClose,
+  PopoverPopup as PopoverContent,
+  PopoverCreateHandle,
+  PopoverDescription,
+  PopoverPopup,
   PopoverPrimitive,
+  PopoverTitle,
+  PopoverTrigger,
 };
