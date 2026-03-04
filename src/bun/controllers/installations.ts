@@ -50,15 +50,18 @@ export const installationController = {
   }): Promise<boolean> => {
     const configPath = join(path, "installation.json");
     if (await exists(configPath)) {
-      const config = JSON.parse(await readFile(configPath, "utf-8"));
+      const config = Bun.JSON5.parse(await readFile(configPath, "utf-8")) as Record<
+        string,
+        unknown
+      >;
       if (name !== undefined) config.name = name;
       if (version !== undefined) config.version = version;
       if (startParams !== undefined) config.startParams = startParams;
-      await writeFile(configPath, JSON.stringify(config, null, 2));
+      await writeFile(configPath, Bun.JSON5.stringify(config, null, 2) || "");
       console.log(`[installations.ts] Updated installation config: ${configPath}`);
       return true;
     }
-    await writeFile(configPath, JSON.stringify({ name, version, startParams }, null, 2));
+    await writeFile(configPath, Bun.JSON5.stringify({ name, version, startParams }, null, 2) || "");
     console.log(`[installations.ts] Created installation config: ${configPath}`);
     return true;
   },
@@ -93,7 +96,10 @@ export const installationController = {
         );
         if (old) {
           const { name, version, startParams } = old;
-          await writeFile(configPath, JSON.stringify({ name, version, startParams }, null, 2));
+          await writeFile(
+            configPath,
+            Bun.JSON5.stringify({ name, version, startParams }, null, 2) || "",
+          );
           console.log(
             `[installations.ts] Migrated old installation config for: ${installationPath}`,
           );
@@ -115,13 +121,13 @@ export const installationController = {
       }
 
       const config = await readFile(configPath, "utf-8");
-      const { version, name, startParams } = JSON.parse(config);
+      const { version, name, startParams } = Bun.JSON5.parse(config) as Record<string, unknown>;
       return {
-        name,
-        version,
+        name: name as string,
+        version: version as string,
         path: installationPath,
         size: await getDirSize(installationPath),
-        startParams,
+        startParams: startParams as string,
       };
     });
 
@@ -141,9 +147,9 @@ export const installationController = {
       console.error(`[installations.ts] Installation config not found: ${configPath}`);
       return;
     }
-    const config = JSON.parse(await readFile(configPath, "utf-8"));
+    const config = Bun.JSON5.parse(await readFile(configPath, "utf-8")) as Record<string, unknown>;
     const versionsPath = await getVersionsPath();
-    const versionPath = join(versionsPath, config.version || "");
+    const versionPath = join(versionsPath, config.version as string);
     if (!(await exists(versionPath))) {
       console.error(`[installations.ts] Version not found for installation: ${versionPath}`);
       return;
@@ -167,7 +173,7 @@ export const installationController = {
       execPath,
       "--dataPath",
       path,
-      ...(config.startParams ? config.startParams.split(" ") : []),
+      ...(config.startParams ? (config.startParams as string).split(" ") : []),
     ]);
   },
   createInstallation: async ({
@@ -188,7 +194,7 @@ export const installationController = {
     await mkdir(newInstallationPath, { recursive: true });
     await writeFile(
       join(newInstallationPath, "installation.json"),
-      JSON.stringify({ name, version, startParams }, null, 2),
+      Bun.JSON5.stringify({ name, version, startParams }, null, 2) || "",
     );
     console.log(`[installations.ts] Created new installation: ${newInstallationPath}`);
     return true;

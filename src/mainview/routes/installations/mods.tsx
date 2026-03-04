@@ -417,7 +417,7 @@ function RouteComponent() {
                         <XIcon className="size-3.5" />
                       </TooltipTrigger>
                     )}
-                    {!installedMod && (
+                    {!installedMod && !downloadingMods.some((v) => v.modid === mod.modid) && (
                       <TooltipTrigger
                         handle={tooltipHandle}
                         payload={() => "Download latest version"}

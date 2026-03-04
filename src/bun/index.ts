@@ -57,7 +57,7 @@ async function getMainViewUrl(): Promise<string> {
 const url = await getMainViewUrl();
 
 const windowConfigData = (await exists(windowConfig))
-  ? JSON.parse(await readFile(windowConfig, "utf-8"))
+  ? (Bun.JSON5.parse(await readFile(windowConfig, "utf-8")) as Record<string, unknown>)
   : {};
 
 const windowHeight = Number(windowConfigData.windowHeight);
@@ -103,7 +103,7 @@ const handleResizeOrMove = async (e: unknown) => {
   windowConfigData.windowX = x;
   windowConfigData.windowY = y;
 
-  await writeFile(windowConfig, JSON.stringify(windowConfigData, null, 2));
+  await writeFile(windowConfig, Bun.JSON5.stringify(windowConfigData, null, 2) || "");
 };
 
 mainWindow.on("resize", handleResizeOrMove);

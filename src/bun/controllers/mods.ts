@@ -72,7 +72,9 @@ export const modController = {
     // Check in modsCacheFile if we have a cached version of the mod for this URL
     const cacheFileRef = Bun.file(modsCacheFile);
     const cacheFileExists = await cacheFileRef.exists();
-    let cache: Record<string, string> = cacheFileExists ? await cacheFileRef.json() : {};
+    let cache: Record<string, string> = cacheFileExists
+      ? (Bun.JSON5.parse(await cacheFileRef.text()) as Record<string, string>)
+      : {};
 
     if (cache[url]) {
       // We have a cached version of the mod, we can use it
@@ -235,7 +237,7 @@ export const modController = {
 
         // Cache the downloaded mod
         cache[url] = modFileName;
-        await Bun.write(modsCacheFile, JSON.stringify(cache, null, 2));
+        await Bun.write(modsCacheFile, Bun.JSON5.stringify(cache, null, 2) || "");
 
         // Symlink the mod to the installation's Mods folder
         await symlink(modFilePath, join(installationModsPath, modFileName), "file");
@@ -291,7 +293,8 @@ export const modController = {
     if (!response.ok) {
       throw new Error(`Failed to fetch mods: ${response.statusText}`);
     }
-    const mods = await response.json();
+    const modsText = await response.text();
+    const mods = Bun.JSON5.parse(modsText) as { mods: unknown[] };
     return mods.mods;
   },
   fetchModInfo: async ({ modid }: { modid: number }) => {
@@ -299,7 +302,8 @@ export const modController = {
     if (!response.ok) {
       throw new Error(`Failed to fetch mod info for modid ${modid}: ${response.statusText}`);
     }
-    const modInfo = await response.json();
+    const modInfoText = await response.text();
+    const modInfo = Bun.JSON5.parse(modInfoText) as Record<string, any>;
     return modInfo;
   },
   getInstalledMods: async ({ path }: { path: string }) => {
@@ -311,36 +315,42 @@ export const modController = {
     const entries = await readdir(modsDir);
     const mods = await Promise.all(
       entries.map(async (entry) => {
-        if (!entry.endsWith(".zip")) {
+        try {
+          if (!entry.endsWith(".zip")) {
+            return null;
+          }
+          const entryPath = join(modsDir, entry);
+          const file = Bun.file(entryPath);
+          if (!(await file.exists())) {
+            console.warn("[mods.ts] Mod file does not exist:", entryPath);
+            return null;
+          }
+          const archive = createZipReader(entryPath);
+          const modinfoEntry = archive.getEntry("modinfo.json");
+          if (!modinfoEntry) {
+            console.warn("[mods.ts] modinfo.json not found in archive:", entryPath);
+            return null;
+          }
+          // Convert all keys to lowercase to handle case sensitivity issues in modinfo.json files
+          const modinfoText = await modinfoEntry.getText();
+          const manifest = Bun.JSON5.parse(modinfoText) as Record<string, any>;
+          const lowerCaseManifest = Object.keys(manifest).reduce(
+            (acc, key) => {
+              acc[key.toLowerCase()] = manifest[key];
+              return acc;
+            },
+            {} as Record<string, any>,
+          );
+          return {
+            name: lowerCaseManifest.name,
+            version: lowerCaseManifest.version,
+            modid: lowerCaseManifest.modid,
+            file: entry,
+          };
+        } catch (error) {
+          console.error("[mods.ts] Error reading mod:", entry, error);
           return null;
         }
-        const entryPath = join(modsDir, entry);
-        const file = Bun.file(entryPath);
-        if (!(await file.exists())) {
-          console.warn("[mods.ts] Mod file does not exist:", entryPath);
-          return null;
-        }
-        const archive = createZipReader(entryPath);
-        const modinfoEntry = archive.getEntry("modinfo.json");
-        if (!modinfoEntry) {
-          console.warn("[mods.ts] modinfo.json not found in archive:", entryPath);
-          return null;
-        }
-        // Convert all keys to lowercase to handle case sensitivity issues in modinfo.json files
-        const manifest = JSON.parse(await modinfoEntry.getText());
-        const lowerCaseManifest = Object.keys(manifest).reduce(
-          (acc, key) => {
-            acc[key.toLowerCase()] = manifest[key];
-            return acc;
-          },
-          {} as Record<string, any>,
-        );
-        return {
-          name: lowerCaseManifest.name,
-          version: lowerCaseManifest.version,
-          modid: lowerCaseManifest.modid,
-          file: entry,
-        };
       }),
     );
     return mods.filter((mod) => mod !== null);
