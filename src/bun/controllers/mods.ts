@@ -102,7 +102,7 @@ export const modController = {
       // Cancel the reader
       if (download.reader) {
         try {
-          download.reader.cancel();
+          await download.reader.cancel();
         } catch {
           // Ignore cancellation errors
         }
@@ -190,6 +190,7 @@ export const modController = {
     });
 
     // Start the download process asynchronously (don't await)
+    // oxlint-disable-next-line typescript/no-floating-promises
     (async () => {
       try {
         const response = await fetch(url, { signal });

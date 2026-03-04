@@ -89,7 +89,7 @@ function RouteComponent() {
         }
       };
 
-      const handleStatus = ({
+      const handleStatus = async ({
         id,
         status,
         message,
@@ -109,7 +109,7 @@ function RouteComponent() {
         if (status === "completed") {
           console.log("Download completed for version", version);
           // Refresh installed versions
-          refetch();
+          await refetch();
         }
 
         // Remove listeners when download ends (completed, error, or cancelled)

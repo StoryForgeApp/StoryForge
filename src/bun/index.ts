@@ -87,6 +87,7 @@ export const mainWindow = new BrowserWindow({
     x,
     y,
   },
+  // @ts-expect-error partition is missing from type definition, but it is supported by BrowserWindow options
   partition: "persist:storyforge",
   rpc: myWebviewRPC,
   title: "Story Forge",

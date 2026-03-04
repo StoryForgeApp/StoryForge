@@ -53,7 +53,7 @@ export const versionController = {
       // Cancel the reader
       if (download.reader) {
         try {
-          download.reader.cancel();
+          await download.reader.cancel();
         } catch {
           // Ignore cancellation errors
         }
@@ -139,6 +139,7 @@ export const versionController = {
     });
 
     // Start the download process asynchronously (don't await)
+    // oxlint-disable-next-line typescript/no-floating-promises
     (async () => {
       try {
         const response = await fetch(`https://vsapi.betterjs.dev/download/${version}/${platform}`, {

@@ -15,17 +15,13 @@ export type StoryForgeRPCType = {
       VersionController["requests"] &
       UtilsController["requests"];
     messages: ServerController["messages"] &
-      InstallationController["messages"] &
       ModController["messages"] &
-      VersionController["messages"] &
-      UtilsController["messages"];
+      VersionController["messages"];
   };
   // functions that execute in the browser context
   webview: RPCSchema<{
     messages: VersionController["messages"] &
       ModController["messages"] &
-      InstallationController["messages"] &
-      ServerController["messages"] &
-      UtilsController["messages"];
+      InstallationController["messages"];
   }>;
 };

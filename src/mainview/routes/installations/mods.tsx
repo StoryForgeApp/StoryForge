@@ -110,9 +110,9 @@ function RouteComponent() {
   const { mutate: removeMod } = useMutation({
     mutationFn: async ({ modzip }: { modzip: string }) =>
       electroview.rpc?.request.removeMod({ modzip: modzip, path }),
-    onSuccess: (resp) => {
+    onSuccess: async (resp) => {
       if (resp?.success) {
-        refetch();
+        await refetch();
       } else {
         console.error("Failed to remove mod:", resp?.message);
       }
@@ -133,13 +133,13 @@ function RouteComponent() {
       // Remove from downloading list on error (including cancellation)
       setDownloadingMods((prev) => prev.filter((v) => v.modid !== options.modid));
     },
-    onSuccess: (response, options) => {
+    onSuccess: async (response, options) => {
       if (response?.cacheHit) {
         console.log(
           "Mod installed from cache, skipping download progress tracking for modid:",
           options.modid,
         );
-        refetch();
+        await refetch();
         return;
       }
       // Add to downloading list
@@ -162,7 +162,7 @@ function RouteComponent() {
         }
       };
 
-      const handleStatus = ({
+      const handleStatus = async ({
         modid,
         status,
         message,
@@ -181,7 +181,7 @@ function RouteComponent() {
         }
         if (status === "completed") {
           console.log("Download completed for mod", options.modid);
-          refetch();
+          await refetch();
         }
 
         // Remove listeners when download ends (completed, error, or cancelled)

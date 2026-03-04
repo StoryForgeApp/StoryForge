@@ -148,9 +148,13 @@ export const installationController = {
       console.error(`[installations.ts] Installation config not found: ${configPath}`);
       return;
     }
-    const config = Bun.JSON5.parse(await readFile(configPath, "utf-8")) as Record<string, unknown>;
+    const config = Bun.JSON5.parse(await readFile(configPath, "utf-8")) as {
+      name: string;
+      version: string;
+      startParams?: string;
+    };
     const versionsPath = await getVersionsPath();
-    const versionPath = join(versionsPath, config.version as string);
+    const versionPath = join(versionsPath, config.version);
     if (!(await exists(versionPath))) {
       console.error(`[installations.ts] Version not found for installation: ${versionPath}`);
       return;
@@ -174,7 +178,7 @@ export const installationController = {
       execPath,
       "--dataPath",
       path,
-      ...(config.startParams ? (config.startParams as string).split(" ") : []),
+      ...(config.startParams ? config.startParams.split(" ") : []),
     ]);
   },
   createInstallation: async ({

@@ -1,11 +1,6 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "plugins": ["typescript", "react"],
   "ignorePatterns": ["src/mainview/routeTree.gen.ts"],
-  "options": {
-    "typeAware": true,
-    "typeCheck": true
-  },
   "sortImports": null,
   "sortPackageJson": true,
   "sortTailwindcss": null

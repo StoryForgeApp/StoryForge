@@ -176,7 +176,7 @@ function RouteComponent() {
         }
       };
 
-      const handleStatus = ({
+      const handleStatus = async ({
         id,
         status,
         message,
@@ -196,7 +196,7 @@ function RouteComponent() {
         if (status === "completed") {
           console.log("Download completed for version", version);
           // Refresh installed versions
-          refetchInstalledVersions();
+          await refetchInstalledVersions();
         }
 
         // Remove listeners when download ends (completed, error, or cancelled)
@@ -242,9 +242,9 @@ function RouteComponent() {
           <PopoverPopup className="w-[var(--anchor-width)]" align="start">
             <form
               className="space-y-4"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                form.handleSubmit(e);
+                await form.handleSubmit(e);
               }}
             >
               <form.Field name="name">

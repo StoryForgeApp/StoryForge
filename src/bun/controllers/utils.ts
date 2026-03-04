@@ -6,7 +6,7 @@ export const utilsController = {
   getStreamMode: async (): Promise<boolean> => {
     return await getStreamMode();
   },
-  openLink: ({ url }: { url: string }) => {
+  openLink: ({ url }: { url: string }): void => {
     Utils.openExternal(url);
   },
   sendNotification: ({
@@ -19,8 +19,8 @@ export const utilsController = {
     body?: string;
     subtitle?: string;
     silent?: boolean;
-  }) => {
-    Utils.showNotification({
+  }): void => {
+    return Utils.showNotification({
       title,
       body,
       subtitle,

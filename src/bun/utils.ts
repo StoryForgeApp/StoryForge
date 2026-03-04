@@ -26,7 +26,7 @@ export async function getStreamMode(): Promise<boolean> {
   if (!(await configFile.exists())) {
     const oldSettings = await getOldSettings();
     if (oldSettings) {
-      configFile.write(
+      await configFile.write(
         Bun.JSON5.stringify(
           {
             streamMode: oldSettings.streamMode,
@@ -38,7 +38,7 @@ export async function getStreamMode(): Promise<boolean> {
       console.log(`[utils.ts] Migrated old settings for stream mode`);
       return oldSettings.streamMode;
     }
-    configFile.write(
+    await configFile.write(
       Bun.JSON5.stringify(
         {
           streamMode: false,
