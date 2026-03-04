@@ -10,7 +10,7 @@
     "dev:hmr": "bun run --parallel \"hmr\" \"electrobun dev --watch\"",
     "format": "bun run --parallel \"oxlint --fix\" oxfmt",
     "hmr": "vite --port 5173",
-    "lint": "bun run --parallel oxlint \"oxfmt --check\"",
+    "lint": "bun run --parallel \"oxlint\" \"oxfmt --check\"",
     "start": "vite build && electrobun dev"
   },
   "dependencies": {
@@ -49,6 +49,7 @@
     "@vitejs/plugin-react": "^5.1.4",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
+    "oxlint-tsgolint": "^0.16.0",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.7.2",
     "vite": "npm:rolldown-vite@latest"
