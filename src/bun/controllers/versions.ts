@@ -1,3 +1,4 @@
+import { InferRPCSchema } from "@/shared/helper";
 import { Utils } from "electrobun";
 import { createWriteStream } from "fs";
 import { cp, exists, mkdir, readdir, rm, stat } from "fs/promises";
@@ -390,3 +391,5 @@ export const versionController = {
     Utils.openPath(join(versionsPath, version));
   },
 };
+
+export type VersionController = InferRPCSchema<typeof versionController>;

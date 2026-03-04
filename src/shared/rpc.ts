@@ -1,51 +1,18 @@
+import { InstallationController } from "@/bun/controllers/installations";
+import { ModController } from "@/bun/controllers/mods";
+import { ServerController } from "@/bun/controllers/servers";
+import { UtilsController } from "@/bun/controllers/utils";
+import { VersionController } from "@/bun/controllers/versions";
 import type { RPCSchema } from "electrobun";
-import { InstallationController } from "./controllers/installations";
-import { ModController } from "./controllers/mods";
-import type { ServerController } from "./controllers/servers";
-import type { VersionController } from "./controllers/versions";
+import { DeepMergeAll } from "./helper";
 
 // src/shared/types.ts
 export type MyWebviewRPCType = {
   // functions that execute in the main process
-  bun: {
-    requests: VersionController["requests"] &
-      ServerController["requests"] &
-      InstallationController["requests"] &
-      ModController["requests"];
-    messages: {
-      logToBun: {
-        msg: string;
-      };
-      downloadProgress: {
-        progress: number;
-        speed: number;
-        id: string;
-      };
-      downloadStatus: {
-        id: string;
-        status: "downloading" | "completed" | "cancelled" | "error";
-        message: string;
-      };
-      cancelDownload: {
-        id: string;
-      };
-    } & ModController["messages"];
-  };
+  bun: DeepMergeAll<[ServerController, VersionController, InstallationController, UtilsController]>;
   // functions that execute in the browser context
   webview: RPCSchema<{
-    requests: {
-      someWebviewFunction: {
-        params: {
-          a: number;
-          b: number;
-        };
-        response: number;
-      };
-    };
     messages: {
-      logToWebview: {
-        msg: string;
-      };
       downloadProgress: {
         progress: number;
         speed: number;

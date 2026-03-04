@@ -1,3 +1,4 @@
+import { InferRPCSchema } from "@/shared/helper";
 import { createZipReader } from "@holmlibs/unzip";
 import { createWriteStream } from "fs";
 import { exists, mkdir, readdir, symlink } from "fs/promises";
@@ -366,4 +367,19 @@ export const modController = {
       return { success: false, message: error instanceof Error ? error.message : "Unknown error" };
     }
   },
+};
+
+export type ModController = InferRPCSchema<typeof modController> & {
+  messages: {
+    downloadModProgress: {
+      modid: number;
+      progress: number;
+      speed: number;
+    };
+    downloadModStatus: {
+      modid: number;
+      status: "downloading" | "completed" | "cancelled" | "error";
+      message: string;
+    };
+  };
 };

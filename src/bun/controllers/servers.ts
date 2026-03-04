@@ -1,3 +1,4 @@
+import { InferRPCSchema } from "@/shared/helper";
 import * as v from "valibot";
 
 const PublicServerSchema = v.object({
@@ -78,3 +79,5 @@ export const serverController = {
     }));
   },
 };
+
+export type ServerController = InferRPCSchema<typeof serverController>;
