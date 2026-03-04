@@ -1,11 +1,15 @@
 import { Utils } from "electrobun/bun";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { mkdirSync } from "fs";
 import { join } from "path";
 
-export function getOldSettings() {
-  const oldConfigPath = join(Utils.paths.appData, "storyforge", "store", "settings.json");
-  if (existsSync(oldConfigPath)) {
-    const oldConfig = JSON.parse(readFileSync(oldConfigPath, "utf-8"));
+export const configFile = Bun.file(join(Utils.paths.appData, "storyforge", "config.json"));
+export const oldSettingsFile = Bun.file(
+  join(Utils.paths.appData, "storyforge", "store", "settings.json"),
+);
+
+export async function getOldSettings() {
+  if (await oldSettingsFile.exists()) {
+    const oldConfig = await oldSettingsFile.json();
     return oldConfig as {
       installationsParent: string | null;
       versionsParent: string | null;
@@ -17,16 +21,71 @@ export function getOldSettings() {
   return null;
 }
 
-export function getVersionsPath(): string {
-  const configPath = join(Utils.paths.appData, "storyforge", "config.json");
-  if (!existsSync(configPath)) {
-    const oldSettings = getOldSettings();
+export async function getStreamMode(): Promise<boolean> {
+  if (!(await configFile.exists())) {
+    const oldSettings = await getOldSettings();
+    if (oldSettings) {
+      configFile.write(
+        JSON.stringify(
+          {
+            streamMode: oldSettings.streamMode,
+          },
+          null,
+          2,
+        ),
+      );
+      console.log(`[utils.ts] Migrated old settings for stream mode`);
+      return oldSettings.streamMode;
+    }
+    configFile.write(
+      JSON.stringify(
+        {
+          streamMode: false,
+        },
+        null,
+        2,
+      ),
+    );
+    return false;
+  }
+  const config = await configFile.json();
+  if (typeof config.streamMode !== "boolean") {
+    config.streamMode = false;
+    await configFile.write(JSON.stringify(config, null, 2));
+  }
+  return config.streamMode;
+}
+
+export async function getModsCachePath(): Promise<string> {
+  if (!(await configFile.exists())) {
+    mkdirSync(join(Utils.paths.appData, "storyforge"), { recursive: true });
+    await configFile.write(
+      JSON.stringify(
+        {
+          modsCachePath: join(Utils.paths.appData, "storyforge", "mods_cache"),
+          streamMode: false,
+        },
+        null,
+        2,
+      ),
+    );
+  }
+  const config = await configFile.json();
+  if (!config.modsCachePath) {
+    config.modsCachePath = join(Utils.paths.appData, "storyforge", "mods_cache");
+    await configFile.write(JSON.stringify(config, null, 2));
+  }
+  return config.modsCachePath;
+}
+
+export async function getVersionsPath(): Promise<string> {
+  if (!(await configFile.exists())) {
+    const oldSettings = await getOldSettings();
     if (oldSettings) {
       const versionsPath = oldSettings.versionsParent
         ? join(oldSettings.versionsParent, oldSettings.versionsSubdir || "versions")
         : join(Utils.paths.appData, "storyforge", "versions");
-      writeFileSync(
-        configPath,
+      await configFile.write(
         JSON.stringify(
           {
             versionPath: versionsPath,
@@ -40,8 +99,7 @@ export function getVersionsPath(): string {
       return versionsPath;
     }
     mkdirSync(join(Utils.paths.appData, "storyforge"), { recursive: true });
-    writeFileSync(
-      configPath,
+    await configFile.write(
       JSON.stringify(
         {
           versionPath: join(Utils.paths.appData, "storyforge", "versions"),
@@ -52,24 +110,22 @@ export function getVersionsPath(): string {
       ),
     );
   }
-  const config = JSON.parse(readFileSync(configPath, "utf-8"));
+  const config = await configFile.json();
   if (!config.versionPath) {
     config.versionPath = join(Utils.paths.appData, "storyforge", "versions");
-    writeFileSync(configPath, JSON.stringify(config, null, 2));
+    await configFile.write(JSON.stringify(config, null, 2));
   }
   return config.versionPath;
 }
 
-export function getInstallationsPath(): string {
-  const configPath = join(Utils.paths.appData, "storyforge", "config.json");
-  if (!existsSync(configPath)) {
-    const oldSettings = getOldSettings();
+export async function getInstallationsPath(): Promise<string> {
+  if (!(await configFile.exists())) {
+    const oldSettings = await getOldSettings();
     if (oldSettings) {
       const installationsPath = oldSettings.installationsParent
         ? join(oldSettings.installationsParent, oldSettings.installationsSubdir || "installations")
         : join(Utils.paths.appData, "storyforge", "installations");
-      writeFileSync(
-        configPath,
+      await configFile.write(
         JSON.stringify(
           {
             installationsPath,
@@ -82,9 +138,7 @@ export function getInstallationsPath(): string {
       console.log(`[utils.ts] Migrated old settings for installations path`);
       return installationsPath;
     }
-    mkdirSync(join(Utils.paths.appData, "storyforge"), { recursive: true });
-    writeFileSync(
-      configPath,
+    await configFile.write(
       JSON.stringify(
         {
           installationsPath: join(Utils.paths.appData, "storyforge", "installations"),
@@ -95,10 +149,10 @@ export function getInstallationsPath(): string {
       ),
     );
   }
-  const config = JSON.parse(readFileSync(configPath, "utf-8"));
+  const config = await configFile.json();
   if (!config.installationsPath) {
     config.installationsPath = join(Utils.paths.appData, "storyforge", "installations");
-    writeFileSync(configPath, JSON.stringify(config, null, 2));
+    await configFile.write(JSON.stringify(config, null, 2));
   }
   return config.installationsPath;
 }
@@ -110,10 +164,12 @@ export function getPlatform(): "windows" | "mac" | "linux" {
   return "linux";
 }
 
-export function oldInstallationsConfig() {
-  const oldConfigPath = join(Utils.paths.appData, "storyforge", "store", "installations.json");
-  if (existsSync(oldConfigPath)) {
-    const oldConfig = JSON.parse(readFileSync(oldConfigPath, "utf-8"));
+export async function oldInstallationsConfig() {
+  const oldConfigFile = Bun.file(
+    join(Utils.paths.appData, "storyforge", "store", "installations.json"),
+  );
+  if (await oldConfigFile.exists()) {
+    const oldConfig = await oldConfigFile.json();
     if (oldConfig.installations) {
       return oldConfig.installations as {
         favorite: boolean;
