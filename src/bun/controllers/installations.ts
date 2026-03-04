@@ -1,12 +1,12 @@
 import { Utils } from "electrobun";
-import { existsSync, readFileSync, rmSync, statSync, writeFileSync } from "fs";
-import { exists, readdir, readFile, stat } from "fs/promises";
+import { exists, mkdir, readdir, readFile, rm, stat, writeFile } from "fs/promises";
 import { join } from "path";
 import {
   getPlatform,
   getInstallationsPath as getUtilsInstallationsPath,
   getVersionsPath,
   oldInstallationsConfig,
+  slugify,
 } from "../utils";
 
 async function getDirSize(dirPath: string): Promise<number> {
@@ -30,8 +30,8 @@ async function getDirSize(dirPath: string): Promise<number> {
 
 export const installationController = {
   deleteInstallation: async ({ path }: { path: string }): Promise<boolean> => {
-    if (existsSync(path)) {
-      rmSync(path, { force: true, recursive: true });
+    if (await exists(path)) {
+      await rm(path, { force: true, recursive: true });
       console.log(`[installations.ts] Deleted installation folder: ${path}`);
       return true;
     }
@@ -41,21 +41,24 @@ export const installationController = {
     path,
     name,
     version,
+    startParams,
   }: {
     path: string;
-    name: string;
-    version: string;
+    name?: string;
+    version?: string;
+    startParams?: string;
   }): Promise<boolean> => {
     const configPath = join(path, "installation.json");
-    if (existsSync(configPath)) {
-      const config = JSON.parse(readFileSync(configPath, "utf-8"));
-      config.name = name;
-      config.version = version;
-      writeFileSync(configPath, JSON.stringify(config, null, 2));
+    if (await exists(configPath)) {
+      const config = JSON.parse(await readFile(configPath, "utf-8"));
+      if (name !== undefined) config.name = name;
+      if (version !== undefined) config.version = version;
+      if (startParams !== undefined) config.startParams = startParams;
+      await writeFile(configPath, JSON.stringify(config, null, 2));
       console.log(`[installations.ts] Updated installation config: ${configPath}`);
       return true;
     }
-    writeFileSync(configPath, JSON.stringify({ name, version }, null, 2));
+    await writeFile(configPath, JSON.stringify({ name, version, startParams }, null, 2));
     console.log(`[installations.ts] Created installation config: ${configPath}`);
     return true;
   },
@@ -68,58 +71,62 @@ export const installationController = {
       startParams: string | null;
     }[]
   > => {
-    // Simulate fetching installed versions
     const installationsPath = getUtilsInstallationsPath();
     const installations = await readdir(installationsPath);
-    // Filter out non-directory entries (in case there are any files in the installations folder)
-    const filteredInstallations = installations
-      .filter(
-        (installation) =>
-          existsSync(join(installationsPath, installation)) &&
-          statSync(join(installationsPath, installation)).isDirectory(),
-      )
-      .map(async (installation) => {
-        const installationPath = join(installationsPath, installation);
-        const configPath = join(installationPath, "installation.json");
-        const configExists = await exists(configPath);
-        if (!configExists) {
-          const oldConfig = oldInstallationsConfig();
-          const old = oldConfig?.find(
-            (inst) => inst.path.toLowerCase() === installationPath.toLowerCase(),
+
+    // Filter to only directories first, then map to installation objects
+    const installationPromises = installations.map(async (installation) => {
+      const installationPath = join(installationsPath, installation);
+      const installationExists = await exists(installationPath);
+      if (!installationExists) return null;
+
+      const stats = await stat(installationPath);
+      if (!stats.isDirectory()) return null;
+
+      const configPath = join(installationPath, "installation.json");
+      const configExists = await exists(configPath);
+
+      if (!configExists) {
+        const oldConfig = oldInstallationsConfig();
+        const old = oldConfig?.find(
+          (inst) => inst.path.toLowerCase() === installationPath.toLowerCase(),
+        );
+        if (old) {
+          const { name, version, startParams } = old;
+          await writeFile(configPath, JSON.stringify({ name, version, startParams }, null, 2));
+          console.log(
+            `[installations.ts] Migrated old installation config for: ${installationPath}`,
           );
-          if (old) {
-            const { name, version, startParams } = old;
-            writeFileSync(configPath, JSON.stringify({ name, version, startParams }, null, 2));
-            console.log(
-              `[installations.ts] Migrated old installation config for: ${installationPath}`,
-            );
-            return {
-              name,
-              version,
-              path: installationPath,
-              startParams,
-              size: await getDirSize(installationPath),
-            };
-          }
           return {
-            name: installation,
+            name,
+            version,
             path: installationPath,
-            version: null,
+            startParams,
             size: await getDirSize(installationPath),
-            startParams: null,
           };
         }
-        const config = await readFile(configPath, "utf-8");
-        const { version, name, startParams } = JSON.parse(config);
         return {
-          name,
-          version,
+          name: installation,
           path: installationPath,
+          version: null,
           size: await getDirSize(installationPath),
-          startParams,
+          startParams: null,
         };
-      });
-    return Promise.all(filteredInstallations);
+      }
+
+      const config = await readFile(configPath, "utf-8");
+      const { version, name, startParams } = JSON.parse(config);
+      return {
+        name,
+        version,
+        path: installationPath,
+        size: await getDirSize(installationPath),
+        startParams,
+      };
+    });
+
+    const results = await Promise.all(installationPromises);
+    return results.filter((item): item is NonNullable<typeof item> => item !== null);
   },
   getInstallationsPath: async (): Promise<string> => {
     // In a real application, you might fetch this from the filesystem or an API
@@ -130,14 +137,14 @@ export const installationController = {
   },
   playWithInstallation: async ({ path }: { path: string }) => {
     const configPath = join(path, "installation.json");
-    if (!existsSync(configPath)) {
+    if (!(await exists(configPath))) {
       console.error(`[installations.ts] Installation config not found: ${configPath}`);
       return;
     }
-    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+    const config = JSON.parse(await readFile(configPath, "utf-8"));
     const versionsPath = getVersionsPath();
     const versionPath = join(versionsPath, config.version || "");
-    if (!existsSync(versionPath)) {
+    if (!(await exists(versionPath))) {
       console.error(`[installations.ts] Version not found for installation: ${versionPath}`);
       return;
     }
@@ -146,7 +153,7 @@ export const installationController = {
       platform === "windows"
         ? join(versionPath, "vintagestory.exe")
         : join(versionPath, "vintagestory");
-    if (!existsSync(execPath)) {
+    if (!(await exists(execPath))) {
       console.error(
         `[installations.ts] Vintage Story executable not found for installation: ${versionPath}`,
       );
@@ -162,5 +169,28 @@ export const installationController = {
       path,
       ...(config.startParams ? config.startParams.split(" ") : []),
     ]);
+  },
+  createInstallation: async ({
+    name,
+    version,
+    startParams,
+  }: {
+    name: string;
+    version: string;
+    startParams: string;
+  }): Promise<boolean> => {
+    const installationsPath = getUtilsInstallationsPath();
+    const newInstallationPath = join(installationsPath, slugify(name));
+    if (await exists(newInstallationPath)) {
+      console.error(`[installations.ts] Installation already exists: ${newInstallationPath}`);
+      return false;
+    }
+    await mkdir(newInstallationPath, { recursive: true });
+    await writeFile(
+      join(newInstallationPath, "installation.json"),
+      JSON.stringify({ name, version, startParams }, null, 2),
+    );
+    console.log(`[installations.ts] Created new installation: ${newInstallationPath}`);
+    return true;
   },
 };
