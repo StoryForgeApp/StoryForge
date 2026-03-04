@@ -58,12 +58,18 @@ const CreateInstallationForm = v.object({
     label: v.string(),
     value: v.string(),
   }),
+  startParams: v.string(),
 });
 
 function RouteComponent() {
-  const defaultValues: { name: string; version: { label: string; value: string } | null } = {
+  const defaultValues: {
+    name: string;
+    version: { label: string; value: string } | null;
+    startParams: string;
+  } = {
     name: "",
     version: null,
+    startParams: "",
   };
   const form = useForm({
     defaultValues,
@@ -71,15 +77,43 @@ function RouteComponent() {
       onChange: CreateInstallationForm,
     },
     onSubmit: (form) => {
+      if (!form.value.version) return;
       console.log("Form submitted:", form);
+      createInstallation({
+        name: form.value.name,
+        version: form.value.version,
+        startParams: form.value.startParams,
+      });
     },
   });
   const { electroview } = Route.useRouteContext();
   const deleteTimeoutRef = useRef<NodeJS.Timeout>(null);
   const [downloadingVersions, setDownloadingVersions] = useState<DownloadingVersion[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data: installations, refetch } = useInstallations();
   const { data: installedVersions, refetch: refetchInstalledVersions } = useInstalledVersions();
+
+  const { mutate: createInstallation, isPending } = useMutation({
+    mutationFn: async (values: {
+      name: string;
+      version: { label: string; value: string };
+      startParams: string;
+    }) =>
+      electroview.rpc?.request.createInstallation({
+        name: values.name,
+        version: values.version.value,
+        startParams: values.startParams,
+      }),
+    onError: (error) => {
+      console.error("Failed to create installation:", error);
+    },
+    onSuccess: async () => {
+      form.reset();
+      setIsOpen(false);
+      await refetch();
+    },
+  });
 
   const { mutate: cancelDownload } = useMutation({
     mutationFn: async (version: string) => electroview.rpc?.request.cancelDownload({ version }),
@@ -194,7 +228,7 @@ function RouteComponent() {
   return (
     <div className="p-2 h-full grid grid-rows-[auto_1fr] gap-2">
       <div className="w-full grid grid-cols-[1fr_auto] items-center gap-2">
-        <Popover>
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
           <Button
             variant="outline"
             className="justify-start py-2 w-full"
@@ -204,7 +238,13 @@ function RouteComponent() {
             Add Installation
           </Button>
           <PopoverPopup className="w-[var(--anchor-width)]" align="start">
-            <form className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit(e);
+              }}
+            >
               <form.Field name="name">
                 {(field) => (
                   <div className="space-y-1">
@@ -251,7 +291,7 @@ function RouteComponent() {
               </form.Field>
               <form.Subscribe selector={(s) => s.canSubmit && !s.isSubmitting && !s.isDefaultValue}>
                 {(canSubmit) => (
-                  <Button disabled={!canSubmit} className="w-full" type="submit">
+                  <Button disabled={!canSubmit || isPending} className="w-full" type="submit">
                     Create Installation
                   </Button>
                 )}
