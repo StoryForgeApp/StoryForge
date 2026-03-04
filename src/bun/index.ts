@@ -1,13 +1,16 @@
 import type { MyWebviewRPCType } from "@/shared/rpc";
-import { BrowserView, BrowserWindow, Screen, Session, Updater } from "electrobun/bun";
+import { BrowserView, BrowserWindow, Screen, Updater, Utils } from "electrobun/bun";
+import { exists, readFile, writeFile } from "fs/promises";
+import { join } from "path";
 import { installationController } from "./controllers/installations";
+import { modController } from "./controllers/mods";
 import { serverController } from "./controllers/servers";
 import { versionController } from "./controllers/versions";
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
-const session = Session.fromPartition("persist:storyforge");
+const windowConfig = join(Utils.paths.config, "window.json");
 
 function getDisplayAtCursor() {
   const cursor = Screen.getCursorScreenPoint();
@@ -29,6 +32,7 @@ const myWebviewRPC = BrowserView.defineRPC<MyWebviewRPCType>({
       ...versionController,
       ...serverController,
       ...installationController,
+      ...modController,
     },
   },
   maxRequestTime: 30000,
@@ -52,17 +56,14 @@ async function getMainViewUrl(): Promise<string> {
 // Create the main application window
 const url = await getMainViewUrl();
 
-const windowHeight = Number(session.cookies.get({ name: "windowHeight" }));
-const windowWidth = Number(session.cookies.get({ name: "windowWidth" }));
-const windowX = Number(session.cookies.get({ name: "windowX" }));
-const windowY = Number(session.cookies.get({ name: "windowY" }));
+const windowConfigData = (await exists(windowConfig))
+  ? JSON.parse(await readFile(windowConfig, "utf-8"))
+  : {};
 
-console.log({
-  windowHeight,
-  windowWidth,
-  windowX,
-  windowY,
-});
+const windowHeight = Number(windowConfigData.windowHeight);
+const windowWidth = Number(windowConfigData.windowWidth);
+const windowX = Number(windowConfigData.windowX);
+const windowY = Number(windowConfigData.windowY);
 
 const height = Number.isNaN(windowHeight) || windowHeight === 0 ? 700 : windowHeight;
 const width = Number.isNaN(windowWidth) || windowWidth === 0 ? 900 : windowWidth;
@@ -91,5 +92,21 @@ export const mainWindow = new BrowserWindow({
   transparent: true,
   url,
 });
+
+const handleResizeOrMove = async (e: unknown) => {
+  const event = e as { data: { height?: number; width?: number; x: number; y: number } };
+  const { x, y } = event.data;
+  if (event.data.height && event.data.width) {
+    windowConfigData.windowHeight = event.data.height;
+    windowConfigData.windowWidth = event.data.width;
+  }
+  windowConfigData.windowX = x;
+  windowConfigData.windowY = y;
+
+  await writeFile(windowConfig, JSON.stringify(windowConfigData, null, 2));
+};
+
+mainWindow.on("resize", handleResizeOrMove);
+mainWindow.on("move", handleResizeOrMove);
 
 console.log("Story Forge app started!");
