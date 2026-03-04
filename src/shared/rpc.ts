@@ -19,6 +19,11 @@ export type MyWebviewRPCType = {
         speed: number;
         id: string;
       };
+      downloadStatus: {
+        id: string;
+        status: "downloading" | "completed" | "cancelled" | "error";
+        message: string;
+      };
       cancelDownload: {
         id: string;
       };
@@ -43,6 +48,11 @@ export type MyWebviewRPCType = {
         progress: number;
         speed: number;
         id: string;
+      };
+      downloadStatus: {
+        id: string;
+        status: "downloading" | "completed" | "cancelled" | "error";
+        message: string;
       };
     };
   }>;
