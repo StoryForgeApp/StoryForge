@@ -67,50 +67,75 @@ function RouteComponent() {
       // Remove from downloading list on error (including cancellation)
       setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
     },
-    onMutate: (version) => {
-      // Add to downloading list
+    onSuccess: (_, version) => {
       setSelectedVersion(null);
+      // Add to downloading list
       setDownloadingVersions((prev) => [...prev, { progress: 0, speed: 0, version }]);
 
-      // Listen for progress updates
-      electroview.rpc?.addMessageListener("downloadProgress", ({ progress, speed, id }) => {
+      // Create listener functions that we can reference for cleanup
+      const handleProgress = ({
+        progress,
+        speed,
+        id,
+      }: {
+        progress: number;
+        speed: number;
+        id: string;
+      }) => {
         if (id === version) {
           setDownloadingVersions((prev) =>
             prev.map((v) => (v.version === version ? { ...v, progress, speed } : v)),
           );
         }
-      });
-    },
-    onSettled: () => {
-      electroview.rpc?.removeMessageListener("downloadProgress", () => {});
-    },
-    onSuccess: (_, version) => {
-      // Remove from downloading list on success
-      setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
-      // Refresh installed versions
-      refetch();
+      };
+
+      const handleStatus = ({
+        id,
+        status,
+        message,
+      }: {
+        id: string;
+        status: string;
+        message: string;
+      }) => {
+        if (id !== version) return;
+
+        if (status === "error") {
+          console.error("Download error for version", version, ":", message);
+        }
+        if (status === "cancelled") {
+          console.log("Download cancelled for version", version);
+        }
+        if (status === "completed") {
+          console.log("Download completed for version", version);
+          // Refresh installed versions
+          refetch();
+        }
+
+        // Remove listeners when download ends (completed, error, or cancelled)
+        if (status === "completed" || status === "error" || status === "cancelled") {
+          setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+          electroview.rpc?.removeMessageListener("downloadProgress", handleProgress);
+          electroview.rpc?.removeMessageListener("downloadStatus", handleStatus);
+        }
+      };
+
+      // Listen for progress updates
+      electroview.rpc?.addMessageListener("downloadProgress", handleProgress);
+      electroview.rpc?.addMessageListener("downloadStatus", handleStatus);
     },
   });
 
   const { mutate: openVersionFolder } = useMutation({
     mutationFn: async (version: string) => electroview.rpc?.request.openVersionFolder({ version }),
-    onError: (error) => {
-      console.error("Failed to open version folder:", error);
-    },
+    onError: (error) => console.error("Failed to open version folder:", error),
   });
 
   const { mutate: deleteVersion } = useMutation({
     mutationFn: async (version: string) => electroview.rpc?.request.deleteVersion({ version }),
-    onError: (error) => {
-      console.error("Failed to delete version:", error);
-    },
-    onSuccess: (success, version) => {
-      if (success) {
-        refetch();
-      } else {
-        console.error("Version folder not found for deletion:", version);
-      }
-    },
+    onError: (error) => console.error("Failed to delete version:", error),
+    onSuccess: (success, version) =>
+      success ? refetch() : console.error("Version folder not found for deletion:", version),
   });
 
   // Should hold the delete version button for 2 seconds before actually deleting the version, to prevent accidental deletions. This is done using CSS clip-path and transition.
@@ -218,7 +243,6 @@ function RouteComponent() {
                         <Button
                           onClick={() => cancelDownload(downloading.version)}
                           size="icon-sm"
-                          title="Cancel download"
                           variant="destructive-outline"
                         />
                       }

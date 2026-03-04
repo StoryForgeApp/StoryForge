@@ -22,6 +22,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ChevronsUpDownIcon,
+  DownloadCloudIcon,
   FolderIcon,
   PlayIcon,
   PlusIcon,
@@ -78,13 +79,10 @@ function RouteComponent() {
   const [downloadingVersions, setDownloadingVersions] = useState<DownloadingVersion[]>([]);
 
   const { data: installations, refetch } = useInstallations();
-  const { data: installedVersions } = useInstalledVersions();
+  const { data: installedVersions, refetch: refetchInstalledVersions } = useInstalledVersions();
 
   const { mutate: cancelDownload } = useMutation({
     mutationFn: async (version: string) => electroview.rpc?.request.cancelDownload({ version }),
-    onSuccess: (_, version) => {
-      setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
-    },
   });
 
   const { mutate: playInstallation } = useMutation({
@@ -106,12 +104,76 @@ function RouteComponent() {
     onError: (error) => {
       console.error("Failed to delete installation:", error);
     },
-    onSuccess: (success, path) => {
+    onSuccess: async (success, path) => {
       if (success) {
-        refetch();
+        await refetch();
       } else {
         console.error("Installation folder not found for deletion:", path);
       }
+    },
+  });
+
+  const { mutate: downloadVersion } = useMutation({
+    mutationFn: async (version: string) => electroview.rpc?.request.downloadVersion({ version }),
+    onError: (_, version) => {
+      // Remove from downloading list on error (including cancellation)
+      setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+    },
+    onSuccess: (_, version) => {
+      // Add to downloading list
+      setDownloadingVersions((prev) => [...prev, { progress: 0, speed: 0, version }]);
+
+      // Create listener functions that we can reference for cleanup
+      const handleProgress = ({
+        progress,
+        speed,
+        id,
+      }: {
+        progress: number;
+        speed: number;
+        id: string;
+      }) => {
+        if (id === version) {
+          setDownloadingVersions((prev) =>
+            prev.map((v) => (v.version === version ? { ...v, progress, speed } : v)),
+          );
+        }
+      };
+
+      const handleStatus = ({
+        id,
+        status,
+        message,
+      }: {
+        id: string;
+        status: string;
+        message: string;
+      }) => {
+        if (id !== version) return;
+
+        if (status === "error") {
+          console.error("Download error for version", version, ":", message);
+        }
+        if (status === "cancelled") {
+          console.log("Download cancelled for version", version);
+        }
+        if (status === "completed") {
+          console.log("Download completed for version", version);
+          // Refresh installed versions
+          refetchInstalledVersions();
+        }
+
+        // Remove listeners when download ends (completed, error, or cancelled)
+        if (status === "completed" || status === "error" || status === "cancelled") {
+          setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+          electroview.rpc?.removeMessageListener("downloadProgress", handleProgress);
+          electroview.rpc?.removeMessageListener("downloadStatus", handleStatus);
+        }
+      };
+
+      // Listen for progress updates
+      electroview.rpc?.addMessageListener("downloadProgress", handleProgress);
+      electroview.rpc?.addMessageListener("downloadStatus", handleStatus);
     },
   });
 
@@ -216,56 +278,7 @@ function RouteComponent() {
           ) : (
             <div className="flex flex-col">
               <AnimatePresence mode="popLayout">
-                {/* Downloading versions */}
-                {downloadingVersions.map((downloading) => (
-                  <m.div
-                    animate="visible"
-                    className="p-3 not-last:border-b border-border flex items-center justify-between hover:bg-accent"
-                    exit="hidden"
-                    initial="hidden"
-                    key={downloading.version}
-                    layout
-                    layoutId={downloading.version}
-                    variants={variations}
-                  >
-                    <div className="flex-1 pr-4">
-                      <div className="flex items-center justify-between">
-                        <m.p className="font-medium" layoutId={`version-${downloading.version}`}>
-                          {downloading.version}
-                        </m.p>
-                        {downloading.progress !== 100 ? (
-                          <p className="text-xs text-muted-foreground">
-                            {formatSpeed(downloading.speed ?? 0)}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">Extracting</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Progress className="flex-1 h-1.5" value={downloading.progress} />
-                        <span className="text-xs text-muted-foreground w-10 text-right">
-                          {downloading.progress}%
-                        </span>
-                      </div>
-                    </div>
-                    <TooltipTrigger
-                      handle={tooltipHandle}
-                      payload={() => "Cancel download"}
-                      render={
-                        <Button
-                          onClick={() => cancelDownload(downloading.version)}
-                          size="icon-sm"
-                          title="Cancel download"
-                          variant="destructive-outline"
-                        />
-                      }
-                    >
-                      <XIcon className="size-3.5" />
-                    </TooltipTrigger>
-                  </m.div>
-                ))}
-
-                {/* Installed versions */}
+                {/* Installations */}
                 {installations
                   ?.sort((a, b) =>
                     compareVersions(parseVersion(b.version ?? ""), parseVersion(a.version ?? "")),
@@ -273,7 +286,7 @@ function RouteComponent() {
                   .map((installation) => (
                     <m.div
                       animate="visible"
-                      className="p-3 not-last:border-b border-border flex items-center justify-between hover:bg-accent"
+                      className="p-3 not-last:border-b border-border flex gap-2 items-center justify-between hover:bg-accent"
                       exit="hidden"
                       initial="hidden"
                       key={installation.name}
@@ -281,16 +294,33 @@ function RouteComponent() {
                       layoutId={installation.name}
                       variants={variations}
                     >
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <m.p layoutId={`installation-${installation.name}`}>
-                            {installation.name}
-                          </m.p>
-                          <p className="text-xs font-thin text-muted-foreground">
-                            ({formatSize(installation.size)})
-                          </p>
+                      <div className="flex flex-col flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <m.p layoutId={`installation-${installation.name}`}>
+                              {installation.name}
+                            </m.p>
+                            <p className="text-xs font-thin text-muted-foreground">
+                              ({formatSize(installation.size)})
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {downloadingVersions.some((v) => v.version === installation.version) &&
+                              (downloadingVersions.find((v) => v.version === installation.version)
+                                ?.progress !== 100 ? (
+                                <p className="text-xs text-muted-foreground">
+                                  {formatSpeed(
+                                    downloadingVersions.find(
+                                      (v) => v.version === installation.version,
+                                    )?.speed ?? 0,
+                                  )}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">Extracting</p>
+                              ))}
+                          </div>
                         </div>
-                        <div>
+                        <div className="flex items-center gap-2">
                           <Badge
                             variant={
                               installedVersions
@@ -302,22 +332,78 @@ function RouteComponent() {
                           >
                             {installation.version ?? "Unknown"}
                           </Badge>
+                          {downloadingVersions.some((v) => v.version === installation.version) && (
+                            <>
+                              <Progress
+                                className="flex-1 h-1.5"
+                                value={
+                                  downloadingVersions.find(
+                                    (v) => v.version === installation.version,
+                                  )?.progress ?? 0
+                                }
+                              />
+                              <span className="text-xs text-muted-foreground w-10 text-right">
+                                {downloadingVersions.find((v) => v.version === installation.version)
+                                  ?.progress ?? 0}
+                                %
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <Group>
-                        <TooltipTrigger
-                          handle={tooltipHandle}
-                          payload={() => "Play with installation"}
-                          render={
-                            <Button
-                              onClick={() => playInstallation(installation.path)}
-                              size="icon-sm"
-                              variant="outline"
-                            />
-                          }
-                        >
-                          <PlayIcon className="size-3.5" />
-                        </TooltipTrigger>
+                        {installedVersions?.some((v) => v.version === installation.version) ? (
+                          <TooltipTrigger
+                            handle={tooltipHandle}
+                            payload={() => "Play with installation"}
+                            render={
+                              <Button
+                                onClick={() => playInstallation(installation.path)}
+                                size="icon-sm"
+                                variant="outline"
+                                className="hover:text-green-500"
+                              />
+                            }
+                          >
+                            <PlayIcon className="size-3.5" />
+                          </TooltipTrigger>
+                        ) : downloadingVersions.some((v) => v.version === installation.version) ? (
+                          <TooltipTrigger
+                            handle={tooltipHandle}
+                            payload={() => "Cancel download"}
+                            render={
+                              <Button
+                                onClick={() =>
+                                  installation.version && cancelDownload(installation.version)
+                                }
+                                size="icon-sm"
+                                variant="destructive-outline"
+                              />
+                            }
+                          >
+                            <XIcon className="size-3.5" />
+                          </TooltipTrigger>
+                        ) : (
+                          <TooltipTrigger
+                            handle={tooltipHandle}
+                            payload={() => "Download version"}
+                            disabled={downloadingVersions.some(
+                              (v) => v.version === installation.version,
+                            )}
+                            render={
+                              <Button
+                                onClick={() =>
+                                  installation.version && downloadVersion(installation.version)
+                                }
+                                size="icon-sm"
+                                variant="outline"
+                                className="hover:text-yellow-500"
+                              />
+                            }
+                          >
+                            <DownloadCloudIcon className="size-3.5" />
+                          </TooltipTrigger>
+                        )}
                         <TooltipTrigger
                           handle={tooltipHandle}
                           payload={() => "Open installation folder"}
