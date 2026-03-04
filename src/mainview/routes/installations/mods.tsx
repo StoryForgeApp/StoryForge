@@ -454,33 +454,35 @@ function RouteComponent() {
                         <DownloadCloudIcon className="size-3.5" />
                       </TooltipTrigger>
                     )}
-                    <TooltipTrigger
-                      handle={tooltipHandle}
-                      payload={() =>
-                        installedMod ? "Switch version" : "Download specific version"
-                      }
-                      render={
-                        <PopoverTrigger
-                          handle={popoverHandle}
-                          payload={() => (
-                            <ModVersionForm
-                              modid={mod.modid}
-                              removeMod={removeMod}
-                              downloadMod={downloadMod}
-                              installed={installedMod}
-                              handle={popoverHandle}
-                            />
-                          )}
-                          render={<Button size="icon-sm" variant="outline" />}
-                        />
-                      }
-                    >
-                      {installedMod ? (
-                        <RefreshCcw className="size-3.5" />
-                      ) : (
-                        <HardDriveDownloadIcon className="size-3.5" />
-                      )}
-                    </TooltipTrigger>
+                    {!downloadingMods.some((v) => v.modid === mod.modid) && (
+                      <TooltipTrigger
+                        handle={tooltipHandle}
+                        payload={() =>
+                          installedMod ? "Switch version" : "Download specific version"
+                        }
+                        render={
+                          <PopoverTrigger
+                            handle={popoverHandle}
+                            payload={() => (
+                              <ModVersionForm
+                                modid={mod.modid}
+                                removeMod={removeMod}
+                                downloadMod={downloadMod}
+                                installed={installedMod}
+                                handle={popoverHandle}
+                              />
+                            )}
+                            render={<Button size="icon-sm" variant="outline" />}
+                          />
+                        }
+                      >
+                        {installedMod ? (
+                          <RefreshCcw className="size-3.5" />
+                        ) : (
+                          <HardDriveDownloadIcon className="size-3.5" />
+                        )}
+                      </TooltipTrigger>
+                    )}
                     {installedMod && (
                       <TooltipTrigger
                         handle={tooltipHandle}
