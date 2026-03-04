@@ -1,4 +1,4 @@
-import type { MyWebviewRPCType } from "@/shared/rpc";
+import type { StoryForgeRPCType } from "@/shared/rpc";
 import { BrowserView, BrowserWindow, Screen, Updater, Utils } from "electrobun/bun";
 import { exists, readFile, writeFile } from "fs/promises";
 import { join } from "path";
@@ -25,7 +25,7 @@ function getDisplayAtCursor() {
   );
 }
 
-const myWebviewRPC = BrowserView.defineRPC<MyWebviewRPCType>({
+const myWebviewRPC = BrowserView.defineRPC<StoryForgeRPCType>({
   handlers: {
     // When the browser sends a message we can handle it
     // in the main bun process

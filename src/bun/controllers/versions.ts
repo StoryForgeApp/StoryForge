@@ -392,4 +392,17 @@ export const versionController = {
   },
 };
 
-export type VersionController = InferRPCSchema<typeof versionController>;
+export type VersionController = InferRPCSchema<typeof versionController> & {
+  messages: {
+    downloadProgress: {
+      progress: number;
+      speed: number;
+      id: string;
+    };
+    downloadStatus: {
+      id: string;
+      status: "downloading" | "completed" | "cancelled" | "error";
+      message: string;
+    };
+  };
+};

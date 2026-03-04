@@ -1,4 +1,4 @@
-import type { MyWebviewRPCType } from "@/shared/rpc";
+import type { StoryForgeRPCType } from "@/shared/rpc";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -10,20 +10,10 @@ import ReactDOM from "react-dom/client";
 import { ThemeProvider } from "./contexts/theme.context";
 import { routeTree } from "./routeTree.gen";
 
-const rpc = Electroview.defineRPC<MyWebviewRPCType>({
+const rpc = Electroview.defineRPC<StoryForgeRPCType>({
   handlers: {
-    messages: {
-      logToWebview: ({ msg }) => {
-        // this will appear in the inspect element devtools console
-        console.log(`bun asked me to logToWebview: ${msg}`);
-      },
-    },
-    requests: {
-      someWebviewFunction: ({ a, b }) => {
-        document.body.innerHTML += `bun asked me to do math with ${a} and ${b}\n`;
-        return a + b;
-      },
-    },
+    messages: {},
+    requests: {},
   },
   maxRequestTime: 60000,
 });

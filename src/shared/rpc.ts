@@ -7,22 +7,11 @@ import type { RPCSchema } from "electrobun";
 import { DeepMergeAll } from "./helper";
 
 // src/shared/types.ts
-export type MyWebviewRPCType = {
+export type StoryForgeRPCType = {
   // functions that execute in the main process
   bun: DeepMergeAll<[ServerController, VersionController, InstallationController, UtilsController]>;
   // functions that execute in the browser context
   webview: RPCSchema<{
-    messages: {
-      downloadProgress: {
-        progress: number;
-        speed: number;
-        id: string;
-      };
-      downloadStatus: {
-        id: string;
-        status: "downloading" | "completed" | "cancelled" | "error";
-        message: string;
-      };
-    } & ModController["messages"];
+    messages: VersionController["messages"] & ModController["messages"];
   }>;
 };
