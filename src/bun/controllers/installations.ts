@@ -71,7 +71,7 @@ export const installationController = {
       startParams: string | null;
     }[]
   > => {
-    const installationsPath = getUtilsInstallationsPath();
+    const installationsPath = await getUtilsInstallationsPath();
     const installations = await readdir(installationsPath);
 
     // Filter to only directories first, then map to installation objects
@@ -87,7 +87,7 @@ export const installationController = {
       const configExists = await exists(configPath);
 
       if (!configExists) {
-        const oldConfig = oldInstallationsConfig();
+        const oldConfig = await oldInstallationsConfig();
         const old = oldConfig?.find(
           (inst) => inst.path.toLowerCase() === installationPath.toLowerCase(),
         );
@@ -142,7 +142,7 @@ export const installationController = {
       return;
     }
     const config = JSON.parse(await readFile(configPath, "utf-8"));
-    const versionsPath = getVersionsPath();
+    const versionsPath = await getVersionsPath();
     const versionPath = join(versionsPath, config.version || "");
     if (!(await exists(versionPath))) {
       console.error(`[installations.ts] Version not found for installation: ${versionPath}`);
@@ -179,7 +179,7 @@ export const installationController = {
     version: string;
     startParams: string;
   }): Promise<boolean> => {
-    const installationsPath = getUtilsInstallationsPath();
+    const installationsPath = await getUtilsInstallationsPath();
     const newInstallationPath = join(installationsPath, slugify(name));
     if (await exists(newInstallationPath)) {
       console.error(`[installations.ts] Installation already exists: ${newInstallationPath}`);
