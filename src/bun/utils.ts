@@ -127,3 +127,21 @@ export function oldInstallationsConfig() {
   }
   return null;
 }
+
+export function slugify(name: string): string {
+  // Remove non-alphanumeric characters and replace with hyphens
+  let slug = name.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "-");
+
+  // Convert to lowercase
+  slug = slug.toLowerCase();
+
+  // Replace multiple hyphens with a single hyphen
+  slug = slug.replace(/-+/g, "-");
+
+  // Ensure it doesn't start or end with a hyphen
+  slug = slug.replace(/^-+/, "");
+  slug = slug.replace(/-+$/, "");
+
+  // Return empty string if all characters removed
+  return slug || "default";
+}
