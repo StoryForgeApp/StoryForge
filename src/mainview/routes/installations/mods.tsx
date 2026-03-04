@@ -2,10 +2,12 @@ import { cn } from "@/lib/utils";
 import { VersionCombobox } from "@/mainview/components/comboboxes/version.combobox";
 import { ModVersionForm } from "@/mainview/components/forms/mod.version.form";
 import { Button } from "@/mainview/components/ui/button";
+import { Checkbox } from "@/mainview/components/ui/checkbox";
 import { ComboboxTrigger, ComboboxValue } from "@/mainview/components/ui/combobox";
 import { Group } from "@/mainview/components/ui/group";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/mainview/components/ui/input-group";
 import { Kbd, KbdGroup } from "@/mainview/components/ui/kbd";
+import { Label } from "@/mainview/components/ui/label";
 import {
   Popover,
   PopoverCreateHandle,
@@ -91,10 +93,12 @@ function RouteComponent() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [sorting, setSorting] = useState<(typeof sortingOptions)[number]["value"]>("trending");
   const [downloadingMods, setDownloadingMods] = useState<DownloadingMod[]>([]);
+  const [showOnlyInstalled, setShowOnlyInstalled] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
   const [versions, setVersions] = useState<{ label: string; value: string }[]>([]);
   const debouncedVersions = useDebounce(versions, 1000);
+
   const { data: installedMods, refetch } = useQuery({
     queryKey: ["installedMods", path],
     queryFn: () =>
@@ -113,6 +117,31 @@ function RouteComponent() {
     placeholderData: keepPreviousData,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+  const { data: modUpdates } = useQuery({
+    queryKey: ["modUpdates", installedMods],
+    queryFn: async () => {
+      if (!installedMods) return {};
+      const modsString = installedMods.map((mod) => `${mod.modid}:${mod.version}`).join(",");
+      return electroview.rpc?.request.fetchModUpdates({ modsString });
+    },
+    enabled: !!installedMods,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const installedModIds = useMemo(() => {
+    if (!installedMods) return [];
+    return (
+      modsData
+        ?.filter((mod) =>
+          installedMods.find(
+            (m) =>
+              m.modid.toString().toLowerCase() === mod.modid.toString().toLowerCase() ||
+              mod.modidstrs.find((id) => id.toLowerCase() === m.modid.toString().toLowerCase()),
+          ),
+        )
+        .map((mod) => mod.modid) || []
+    );
+  }, [installedMods, modsData]);
 
   const { mutate: openLink } = useMutation({
     mutationFn: async (url: string) => electroview.rpc?.request.openLink({ url }),
@@ -224,6 +253,9 @@ function RouteComponent() {
   const mods = useMemo(() => {
     if (!modsData) return [];
     let sortedMods = [...modsData];
+    if (showOnlyInstalled) {
+      sortedMods = sortedMods.filter((mod) => installedModIds.includes(mod.modid));
+    }
     switch (sorting) {
       case "trending":
         sortedMods.sort((a, b) => b.trendingpoints - a.trendingpoints);
@@ -249,7 +281,7 @@ function RouteComponent() {
         break;
     }
     return sortedMods;
-  }, [modsData, sorting]);
+  }, [modsData, sorting, showOnlyInstalled, installedModIds]);
 
   const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
@@ -320,18 +352,29 @@ function RouteComponent() {
           <PopoverTrigger render={<Button variant="outline" size="sm" className="w-full" />}>
             Filters
           </PopoverTrigger>
-          <PopoverPopup className="w-[var(--anchor-width)]" align="start">
-            <VersionCombobox
-              disableInstalled={false}
-              trigger={
-                <ComboboxTrigger render={<SelectButton />}>
-                  <ComboboxValue placeholder="All versions" />
-                </ComboboxTrigger>
-              }
-              multiple
-              onValueChange={(v) => setVersions(v as { label: string; value: string }[])}
-              value={versions}
-            />
+          <PopoverPopup showArrow={false} className="w-[var(--anchor-width)]" align="start">
+            <div className="space-y-2">
+              <VersionCombobox
+                disableInstalled={false}
+                trigger={
+                  <ComboboxTrigger render={<SelectButton />}>
+                    <ComboboxValue placeholder="All versions" />
+                  </ComboboxTrigger>
+                }
+                disabled={showOnlyInstalled}
+                multiple
+                onValueChange={(v) => setVersions(v as { label: string; value: string }[])}
+                value={versions}
+              />
+              <Label>
+                <Checkbox
+                  checked={showOnlyInstalled}
+                  onCheckedChange={(v) => setShowOnlyInstalled(v)}
+                />
+                Show only installed mods{" "}
+                <span className="text-muted-foreground">({installedMods?.length || 0})</span>
+              </Label>
+            </div>
           </PopoverPopup>
         </Popover>
       </div>
@@ -349,9 +392,10 @@ function RouteComponent() {
                 m.modid.toString().toLowerCase() === mod.modid.toString().toLowerCase() ||
                 mod.modidstrs.find((id) => id.toLowerCase() === m.modid.toString().toLowerCase()),
             );
+            const modUpdate = modUpdates?.[installedMod?.modid || ""];
             return (
               <div
-                className="left-0 absolute top-0 w-full p-1 not-last:border-b border-border flex items-center justify-between hover:bg-accent"
+                className="left-0 absolute top-0 w-full not-last:border-b border-border flex items-center justify-between hover:bg-accent"
                 key={mod.modid}
                 style={{
                   height: `${virtualRow.size}px`,
@@ -364,7 +408,7 @@ function RouteComponent() {
                   animate="visible"
                   exit="hidden"
                   className={cn(
-                    "w-full flex items-center justify-between px-1",
+                    "w-full flex items-center justify-between px-2 py-1",
                     installedMod && "bg-green-900/20",
                   )}
                 >
@@ -390,7 +434,7 @@ function RouteComponent() {
                       alt={`${mod.name} logo`}
                       className="w-10 h-10 rounded-md"
                     />
-                    <div className="flex flex-col truncate gap-0">
+                    <div className="flex flex-col truncate gap-0 flex-1">
                       <p className="font-medium truncate">
                         {mod.name}{" "}
                         <span className="text-muted-foreground font-normal">
@@ -439,6 +483,23 @@ function RouteComponent() {
                         <XIcon className="size-3.5" />
                       </TooltipTrigger>
                     )}
+                    {modUpdate && (
+                      <TooltipTrigger
+                        handle={tooltipHandle}
+                        payload={() => "Download latest version"}
+                        render={
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            onClick={() =>
+                              downloadMod({ url: modUpdate.mainfile, modid: mod.modid })
+                            }
+                          />
+                        }
+                      >
+                        <DownloadCloudIcon className="size-3.5" />
+                      </TooltipTrigger>
+                    )}
                     {!installedMod && !downloadingMods.some((v) => v.modid === mod.modid) && (
                       <TooltipTrigger
                         handle={tooltipHandle}
@@ -483,7 +544,7 @@ function RouteComponent() {
                         )}
                       </TooltipTrigger>
                     )}
-                    {installedMod && (
+                    {installedMod && !downloadingMods.some((v) => v.modid === mod.modid) && (
                       <TooltipTrigger
                         handle={tooltipHandle}
                         payload={() => "Remove mod"}

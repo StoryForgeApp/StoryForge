@@ -72,6 +72,18 @@ interface Release {
   changelog: string;
 }
 
+interface Update {
+  releaseid: number;
+  mainfile: string;
+  filename: string;
+  fileid: number;
+  downloads: number;
+  tags: string[];
+  modidstr: string;
+  modversion: string;
+  created: string;
+}
+
 const modsCachePath = await getModsCachePath();
 const modsCacheFile = join(modsCachePath, "cache.json");
 
@@ -439,6 +451,22 @@ export const modController = {
       console.error("[mods.ts] Failed to remove mod:", error);
       return { success: false, message: error instanceof Error ? error.message : "Unknown error" };
     }
+  },
+  fetchModUpdates: async ({
+    modsString,
+  }: {
+    modsString: string;
+  }): Promise<Record<string, Update>> => {
+    const response = await fetch(
+      `https://mods.vintagestory.at/api/updates?mods=${encodeURIComponent(modsString)}`,
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch mod updates: ${response.statusText}`);
+    }
+    const updatesText = await response.text();
+    const updates = Bun.JSON5.parse(updatesText) as { updates: Record<string, Update> };
+    return updates.updates;
+    // Implementation for fetching mod updates
   },
 };
 

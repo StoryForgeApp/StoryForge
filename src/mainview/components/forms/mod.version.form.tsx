@@ -101,7 +101,7 @@ export function ModVersionForm({
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectPopup>
+              <SelectPopup alignItemWithTrigger={false} className="max-h-60">
                 {items?.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
