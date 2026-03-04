@@ -114,6 +114,10 @@ function RouteComponent() {
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
+  const { mutate: openLink } = useMutation({
+    mutationFn: async (url: string) => electroview.rpc?.request.openLink({ url }),
+  });
+
   const { mutateAsync: removeMod } = useMutation({
     mutationFn: async ({ modzip }: { modzip: string }) =>
       electroview.rpc?.request.removeMod({ modzip: modzip, path }),
@@ -365,7 +369,18 @@ function RouteComponent() {
                   )}
                 >
                   <a
-                    href={`https://mods.vintagestory.at/mods/${mod.modid}`}
+                    href={
+                      mod.urlalias
+                        ? `https://mods.vintagestory.at/${mod.urlalias}`
+                        : `https://mods.vintagestory.at/show/mod/${mod.modid}`
+                    }
+                    onClick={() =>
+                      openLink(
+                        mod.urlalias
+                          ? `https://mods.vintagestory.at/${mod.urlalias}`
+                          : `https://mods.vintagestory.at/show/mod/${mod.modid}`,
+                      )
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 truncate flex-1"
