@@ -4,7 +4,7 @@ import { useRouteContext } from "@tanstack/react-router";
 export const useInstalledVersions = () => {
   const { electroview } = useRouteContext({ from: "__root__" });
   return useQuery({
-    queryFn: async () => electroview.rpc?.request.getInstalledVersions(),
+    queryFn: () => electroview.rpc?.request.getInstalledVersions(),
     queryKey: ["installedVersions"],
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
