@@ -33,7 +33,7 @@ export default {
     watchIgnore: ["dist/**"],
     win: {
       bundleCEF: false,
-      icon: "icon.iconset/icon_512x512.png",
+      icon: "assets/icon_512x512.ico",
     },
   },
 } satisfies ElectrobunConfig;
