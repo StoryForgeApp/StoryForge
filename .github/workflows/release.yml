@@ -1,0 +1,59 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    strategy:
+      matrix:
+        os: [
+            # macos-latest,
+            macos-26-intel,
+            ubuntu-latest,
+            # ubuntu-24.04-arm,
+            windows-latest,
+            # windows-11-arm,
+          ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Determine build environment
+        id: build-env
+        run: |
+          if [[ "${{ github.ref_name }}" == *"-canary"* ]]; then
+            echo "env=canary" >> $GITHUB_OUTPUT
+          else
+            echo "env=stable" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build app
+        run: |
+          if [ "${{ steps.build-env.outputs.env }}" = "canary" ]; then
+            bun run build:canary
+          else
+            bun run build:stable
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          draft: true
+          prerelease: ${{ steps.build-env.outputs.env == 'canary' }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

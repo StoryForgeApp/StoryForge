@@ -8,6 +8,12 @@ export default {
     description: "A VintageStory mod manager built with Bun and React",
     urlSchemes: ["storyforge", "storyforge-dev"],
   },
+  runtime: {
+    exitOnLastWindowClosed: true,
+  },
+  release: {
+    baseUrl: "https://github.com/StoryForgeApp/storyforge/releases/latest/download"
+  },
   build: {
     // Vite builds to dist/, we copy from there
     copy: {
