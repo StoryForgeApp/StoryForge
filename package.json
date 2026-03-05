@@ -59,6 +59,6 @@
   },
   "lint-staged": {
     "*": "oxfmt --no-error-on-unmatched-pattern",
-    "*.{js,jsx,ts,tsx,mjs,cjs}": "bun run format"
+    "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix"
   }
 }
