@@ -15,7 +15,7 @@ export default {
       "dist/index.html": "views/mainview/index.html",
     },
     linux: {
-      bundleCEF: false,
+      bundleCEF: process.env.NODE_ENV === "production",
       icon: "assets/icon.png",
     },
     mac: {
