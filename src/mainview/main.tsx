@@ -1,12 +1,17 @@
 import type { StoryForgeRPCType } from "@/shared/rpc";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
+import { hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
 import { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { Electroview } from "electrobun/view";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
+import { LogoFull } from "./components/logo";
 import { ThemeProvider } from "./contexts/theme.context";
 import { routeTree } from "./routeTree.gen";
 
@@ -39,7 +44,25 @@ const router = createRouter({
   Wrap: ({ children }) => (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <ThemeProvider>{children}</ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      <TanStackDevtools
+        config={{
+          customTrigger: (
+            <LogoFull className="size-12 hover:opacity-100 opacity-0 transition-all duration-300 ease-in-out" />
+          ),
+        }}
+        plugins={[
+          {
+            name: "Query",
+            render: <ReactQueryDevtoolsPanel />,
+          },
+          {
+            name: "Router",
+            render: <TanStackRouterDevtoolsPanel router={router} />,
+          },
+          formDevtoolsPlugin(),
+          hotkeysDevtoolsPlugin(),
+        ]}
+      />
     </PersistQueryClientProvider>
   ),
 });

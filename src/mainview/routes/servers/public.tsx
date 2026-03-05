@@ -12,6 +12,7 @@ import {
   TooltipPopup,
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
+import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -24,7 +25,7 @@ import {
   ZapIcon,
   ZoomInIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 export const Route = createFileRoute("/servers/public")({
   component: RouteComponent,
@@ -77,21 +78,9 @@ function RouteComponent() {
     overscan: 5,
   });
 
-  const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((isMac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isMac]);
+  useHotkey("Mod+K", () => {
+    searchRef.current?.focus();
+  });
 
   return (
     <div className="h-full grid grid-rows-[auto_1fr] p-2">
@@ -107,8 +96,7 @@ function RouteComponent() {
           </InputGroupAddon>
           <InputGroupAddon align="inline-end">
             <KbdGroup>
-              <Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-              <Kbd>K</Kbd>
+              <Kbd>{formatForDisplay("Mod+K")}</Kbd>
             </KbdGroup>
           </InputGroupAddon>
         </InputGroup>

@@ -31,6 +31,7 @@ import {
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
 import useDebounce from "@/mainview/hooks/use-debounce";
+import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { measureElement, useVirtualizer } from "@tanstack/react-virtual";
@@ -47,7 +48,7 @@ import {
 } from "lucide-react";
 import { Variants } from "motion/react";
 import * as m from "motion/react-m";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import * as v from "valibot";
 
 const SearchSchema = v.object({
@@ -292,21 +293,7 @@ function RouteComponent() {
     return sortedMods;
   }, [modsData, sorting, showOnlyInstalled, installedModIds]);
 
-  const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((isMac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isMac]);
+  useHotkey("Mod+K", () => searchRef.current?.focus());
 
   const modsVirtualizer = useVirtualizer({
     count: mods?.length || 0,
@@ -335,8 +322,7 @@ function RouteComponent() {
             </InputGroupAddon>
             <InputGroupAddon align="inline-end">
               <KbdGroup>
-                <Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-                <Kbd>K</Kbd>
+                <Kbd>{formatForDisplay("Mod+K")}</Kbd>
               </KbdGroup>
             </InputGroupAddon>
           </InputGroup>
