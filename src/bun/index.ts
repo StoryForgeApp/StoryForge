@@ -7,11 +7,13 @@ import { modController } from "./controllers/mods";
 import { serverController } from "./controllers/servers";
 import { utilsController } from "./controllers/utils";
 import { versionController } from "./controllers/versions";
+import { getPlatform } from "./utils";
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
 const windowConfig = join(Utils.paths.config, "window.json");
+const platform = getPlatform();
 
 function getDisplayAtCursor() {
   const cursor = Screen.getCursorScreenPoint();
@@ -94,6 +96,7 @@ export const mainWindow = new BrowserWindow({
   titleBarStyle: "hiddenInset",
   transparent: true,
   url,
+  renderer: platform === "linux" ? "cef" : "native", // CEF on Linux for better font rendering and drag-and-drop support
 });
 
 const handleResizeOrMove = async (e: unknown) => {
