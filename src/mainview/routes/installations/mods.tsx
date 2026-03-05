@@ -249,7 +249,7 @@ function RouteComponent() {
       const modInfo = await electroview.rpc?.request.fetchModInfo({ modid });
       const latestVersion = modInfo?.mod?.releases
         ?.sort(
-          (a, b) => compareVersions(parseVersion(b.modversion), parseVersion(a.modversion)) || 0,
+          (a, b) => compareVersions(parseVersion(a.modversion), parseVersion(b.modversion)) || 0,
         )
         .pop();
       if (!latestVersion) {
