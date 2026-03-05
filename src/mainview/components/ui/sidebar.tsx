@@ -18,6 +18,7 @@ import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
+import { LogoFull } from "../logo";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -129,7 +130,10 @@ function SidebarProvider({
       <div className="group/sidebar-wrapper grid h-screen! grid-rows-[min-content_auto] bg-sidebar transition-all duration-200 ease-linear rounded-xl w-full border border-border overflow-hidden">
         <div className="p-2 w-full grid grid-cols-3 cursor-grab justify-between items-center electrobun-webkit-app-region-drag active:cursor-grabbing shrink-0">
           <div />
-          <p className="text-center font-bold select-none">Story Forge</p>
+          <div className="flex items-center justify-center gap-2">
+            <LogoFull monoChrome className="w-8 h-8" />
+            <p className="text-center font-bold select-none">Story Forge</p>
+          </div>
           <div className="flex items-center gap-2 electrobun-webkit-app-region-no-drag justify-end">
             <ThemeToggle />
             <SidebarTrigger />
