@@ -1,7 +1,7 @@
 import { InferRPCSchema } from "@/shared/helper";
 import { createZipReader } from "@holmlibs/unzip";
 import { createWriteStream } from "fs";
-import { exists, link, mkdir, readdir, symlink } from "fs/promises";
+import { exists, link, mkdir, readdir } from "fs/promises";
 import { join } from "path";
 import { mainWindow } from "..";
 import { getModsCachePath } from "../utils";
@@ -316,7 +316,7 @@ export const modController = {
         await Bun.write(modsCacheFile, Bun.JSON5.stringify(cache, null, 2) || "");
 
         // Symlink the mod to the installation's Mods folder
-        await symlink(modFilePath, join(installationModsPath, modFileName), "file");
+        await link(modFilePath, join(installationModsPath, modFileName));
         console.log(`[mods.ts] Installed mod from URL and cached it for future use: ${url}`);
 
         // Send success status event
