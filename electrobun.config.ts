@@ -16,17 +16,18 @@ export default {
     },
     linux: {
       bundleCEF: process.env.NODE_ENV === "production",
-      icon: "assets/icon.png",
+      icon: "icon.iconset/icon_512x512.png",
     },
     mac: {
       bundleCEF: false,
+      icons: "icon.iconset",
     },
     // Ignore Vite output in watch mode — HMR handles view rebuilds separately
     // @ts-expect-error ElectrobunConfig doesn't have watchIgnore yet, but it should be added to avoid unnecessary restarts during development
     watchIgnore: ["dist/**"],
     win: {
       bundleCEF: false,
-      icon: "assets/icon.png",
+      icon: "icon.iconset/icon_512x512.png",
     },
   },
 } satisfies ElectrobunConfig;
