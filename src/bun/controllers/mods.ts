@@ -392,7 +392,18 @@ export const modController = {
     const modInfo = Bun.JSON5.parse(modInfoText) as ModResponse;
     return modInfo;
   },
-  getInstalledMods: async ({ path }: { path: string }) => {
+  getInstalledMods: async ({
+    path,
+  }: {
+    path: string;
+  }): Promise<
+    {
+      name: string;
+      version: string;
+      modid: string;
+      file: string;
+    }[]
+  > => {
     const modsDir = join(path, "Mods");
     console.log("[mods.ts] Checking for installed mods in:", modsDir);
     if (!(await exists(modsDir))) {
@@ -425,7 +436,7 @@ export const modController = {
               acc[key.toLowerCase()] = manifest[key];
               return acc;
             },
-            {} as Record<string, any>,
+            {} as Record<string, string>,
           );
           return {
             name: lowerCaseManifest.name,
