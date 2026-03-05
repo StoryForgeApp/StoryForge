@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, compareVersions, parseVersion } from "@/lib/utils";
 import { VersionCombobox } from "@/mainview/components/comboboxes/version.combobox";
 import { ModVersionForm } from "@/mainview/components/forms/mod.version.form";
 import { Button } from "@/mainview/components/ui/button";
@@ -117,14 +117,19 @@ function RouteComponent() {
     placeholderData: keepPreviousData,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+
+  const modsString = useMemo(
+    () => installedMods?.map((mod) => `${mod.modid}@${mod.version}`).join(","),
+    [installedMods],
+  );
+
   const { data: modUpdates } = useQuery({
-    queryKey: ["modUpdates", installedMods],
+    queryKey: ["modUpdates", modsString],
     queryFn: async () => {
-      if (!installedMods) return {};
-      const modsString = installedMods.map((mod) => `${mod.modid}:${mod.version}`).join(",");
+      if (!modsString) return {};
       return electroview.rpc?.request.fetchModUpdates({ modsString });
     },
-    enabled: !!installedMods,
+    enabled: !!modsString,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -241,7 +246,11 @@ function RouteComponent() {
   const { mutate: downloadLatest } = useMutation({
     mutationFn: async (modid: number) => {
       const modInfo = await electroview.rpc?.request.fetchModInfo({ modid });
-      const latestVersion = modInfo?.mod?.releases?.[0];
+      const latestVersion = modInfo?.mod?.releases
+        ?.sort(
+          (a, b) => compareVersions(parseVersion(b.modversion), parseVersion(a.modversion)) || 0,
+        )
+        .pop();
       if (!latestVersion) {
         throw new Error("No versions found for mod " + modid);
       }
@@ -483,7 +492,7 @@ function RouteComponent() {
                         <XIcon className="size-3.5" />
                       </TooltipTrigger>
                     )}
-                    {modUpdate && (
+                    {modUpdate && modUpdate.modversion !== installedMod?.version && (
                       <TooltipTrigger
                         handle={tooltipHandle}
                         payload={() => "Download latest version"}
