@@ -15,7 +15,7 @@ export default {
       "dist/index.html": "views/mainview/index.html",
     },
     linux: {
-      bundleCEF: true,
+      bundleCEF: false,
       icon: "assets/icon.png",
     },
     mac: {
