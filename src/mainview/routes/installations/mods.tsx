@@ -5,6 +5,7 @@ import { Button } from "@/mainview/components/ui/button";
 import { Checkbox } from "@/mainview/components/ui/checkbox";
 import { ComboboxTrigger, ComboboxValue } from "@/mainview/components/ui/combobox";
 import { Group } from "@/mainview/components/ui/group";
+import { Input } from "@/mainview/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/mainview/components/ui/input-group";
 import { Kbd, KbdGroup } from "@/mainview/components/ui/kbd";
 import { Label } from "@/mainview/components/ui/label";
@@ -96,6 +97,7 @@ function RouteComponent() {
   const [downloadingMods, setDownloadingMods] = useState<DownloadingMod[]>([]);
   const [showOnlyInstalled, setShowOnlyInstalled] = useState(false);
   const [search, setSearch] = useState("");
+  const [author, setAuthor] = useState("");
   const debouncedSearch = useDebounce(search, 500);
   const [versions, setVersions] = useState<{ label: string; value: string }[]>([]);
   const debouncedVersions = useDebounce(versions, 1000);
@@ -263,6 +265,11 @@ function RouteComponent() {
   const mods = useMemo(() => {
     if (!modsData) return [];
     let sortedMods = [...modsData];
+    if (author) {
+      sortedMods = sortedMods.filter((mod) =>
+        mod.author.toLowerCase().includes(author.toLowerCase()),
+      );
+    }
     if (showOnlyInstalled) {
       sortedMods = sortedMods.filter((mod) => installedModIds.includes(mod.modid));
     }
@@ -291,7 +298,7 @@ function RouteComponent() {
         break;
     }
     return sortedMods;
-  }, [modsData, sorting, showOnlyInstalled, installedModIds]);
+  }, [modsData, sorting, showOnlyInstalled, installedModIds, author]);
 
   useHotkey("Mod+K", () => searchRef.current?.focus());
 
@@ -349,6 +356,7 @@ function RouteComponent() {
           </PopoverTrigger>
           <PopoverPopup showArrow={false} className="w-[var(--anchor-width)]" align="start">
             <div className="space-y-2">
+              <Input value={author} onValueChange={setAuthor} placeholder="Search by author" />
               <VersionCombobox
                 disableInstalled={false}
                 trigger={
@@ -437,6 +445,11 @@ function RouteComponent() {
                           <Button
                             variant="link"
                             className="text-yellow-700 dark:text-yellow-200 px-0"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setAuthor(mod.author);
+                            }}
                           >
                             {mod.author}
                           </Button>
