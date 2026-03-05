@@ -404,7 +404,7 @@ function RouteComponent() {
                   exit="hidden"
                   className={cn(
                     "w-full flex items-center justify-between px-2 py-1",
-                    installedMod && "bg-green-900/20",
+                    installedMod && "bg-green-300/20 dark:bg-green-900/20",
                   )}
                 >
                   <a
