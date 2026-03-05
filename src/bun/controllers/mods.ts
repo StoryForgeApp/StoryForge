@@ -1,7 +1,7 @@
 import { InferRPCSchema } from "@/shared/helper";
 import { createZipReader } from "@holmlibs/unzip";
 import { createWriteStream } from "fs";
-import { exists, mkdir, readdir, symlink } from "fs/promises";
+import { exists, link, mkdir, readdir, symlink } from "fs/promises";
 import { join } from "path";
 import { mainWindow } from "..";
 import { getModsCachePath } from "../utils";
@@ -159,11 +159,7 @@ export const modController = {
       // We have a cached version of the mod, we can use it
       const cachedModPath = cache[url];
       // Make a symlink of the cached mod to the installation's Mods folder
-      await symlink(
-        join(modsCachePath, cachedModPath),
-        join(installationModsPath, cachedModPath),
-        "file",
-      );
+      await link(join(modsCachePath, cachedModPath), join(installationModsPath, cachedModPath));
       console.log(`[mods.ts] Installed mod from cache for URL: ${url}`);
       return { success: true, message: "Mod installed from cache", cacheHit: true };
     }
