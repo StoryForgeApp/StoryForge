@@ -13,9 +13,10 @@ export function VersionCombobox({
   trigger,
   disableInstalled = true,
   ...props
-}: { trigger: React.ReactNode; disableInstalled?: boolean } & React.ComponentProps<
-  typeof Combobox
->) {
+}: {
+  trigger: React.ReactNode;
+  disableInstalled?: boolean;
+} & React.ComponentProps<typeof Combobox>) {
   const { data: installedVersions } = useInstalledVersions();
   const { data: allVersionsData, isFetching, refetch } = useAllVersions();
   const [showRc, setShowRc] = useState(false);
@@ -67,7 +68,7 @@ export function VersionCombobox({
         <ComboboxList>
           {(item) => (
             <ComboboxItem
-              className="data-[highlighted]:bg-accent rounded-sm px-2 py-1 cursor-pointer data-[selected]:bg-primary data-[selected]:text-primary-foreground"
+              className="data-highlighted:bg-accent rounded-sm px-2 py-1 cursor-pointer data-selected:bg-primary data-selected:text-primary-foreground"
               disabled={
                 disableInstalled && installedVersions?.map((v) => v.version).includes(item.value)
               }

@@ -239,7 +239,7 @@ function RouteComponent() {
             <PlusIcon />
             Add Installation
           </Button>
-          <PopoverPopup className="w-[var(--anchor-width)]" align="start">
+          <PopoverPopup className="w-(--anchor-width)" align="start">
             <form
               className="space-y-4"
               onSubmit={async (e) => {

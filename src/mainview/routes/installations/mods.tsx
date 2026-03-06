@@ -350,7 +350,7 @@ function RouteComponent() {
           <PopoverTrigger render={<Button variant="outline" size="sm" className="w-full" />}>
             Filters
           </PopoverTrigger>
-          <PopoverPopup showArrow={false} className="w-[var(--anchor-width)]" align="start">
+          <PopoverPopup showArrow={false} className="w-(--anchor-width)" align="start">
             <div className="space-y-2">
               <Input value={author} onValueChange={setAuthor} placeholder="Search by author" />
               <VersionCombobox
@@ -382,7 +382,12 @@ function RouteComponent() {
         scrollFade
         viewportRef={scrollRef}
       >
-        <div style={{ height: `${modsVirtualizer.getTotalSize()}px`, position: "relative" }}>
+        <div
+          style={{
+            height: `${modsVirtualizer.getTotalSize()}px`,
+            position: "relative",
+          }}
+        >
           {modsVirtualizer.getVirtualItems().map((virtualRow) => {
             const mod = mods?.[virtualRow.index];
             if (!mod) return null;
@@ -496,7 +501,10 @@ function RouteComponent() {
                             size="icon-sm"
                             variant="outline"
                             onClick={() =>
-                              downloadMod({ url: modUpdate.mainfile, modid: mod.modid })
+                              downloadMod({
+                                url: modUpdate.mainfile,
+                                modid: mod.modid,
+                              })
                             }
                           />
                         }
