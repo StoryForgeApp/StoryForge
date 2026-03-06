@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
 import useDebounce from "@/mainview/hooks/use-debounce";
+import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -81,12 +82,6 @@ const variations = {
   visible: { opacity: 1, y: 0 },
 } as Variants;
 
-interface DownloadingMod {
-  progress: number;
-  speed: number; // in bits per second
-  modid: number;
-}
-
 function RouteComponent() {
   const { electroview } = Route.useRouteContext();
   const navigate = useNavigate();
@@ -94,7 +89,10 @@ function RouteComponent() {
   const searchRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [sorting, setSorting] = useState<(typeof sortingOptions)[number]["value"]>("trending");
-  const [downloadingMods, setDownloadingMods] = useState<DownloadingMod[]>([]);
+  const downloadingMods = useDownloadsStore((state) => state.downloadingMods);
+  const addDownloadingMod = useDownloadsStore((state) => state.addDownloadingMod);
+  const updateDownloadingMod = useDownloadsStore((state) => state.updateDownloadingMod);
+  const removeDownloadingMod = useDownloadsStore((state) => state.removeDownloadingMod);
   const [showOnlyInstalled, setShowOnlyInstalled] = useState(false);
   const [search, setSearch] = useState("");
   const [author, setAuthor] = useState("");
@@ -170,7 +168,7 @@ function RouteComponent() {
   const { mutate: cancelDownload } = useMutation({
     mutationFn: async (modid: number) => electroview.rpc?.request.cancelModDownload({ modid }),
     onSuccess: (_, modid) => {
-      setDownloadingMods((prev) => prev.filter((v) => v.modid !== modid));
+      removeDownloadingMod(modid);
     },
   });
 
@@ -179,7 +177,7 @@ function RouteComponent() {
       electroview.rpc?.request.installMod({ url, path, modid }),
     onError: (_, options) => {
       // Remove from downloading list on error (including cancellation)
-      setDownloadingMods((prev) => prev.filter((v) => v.modid !== options.modid));
+      removeDownloadingMod(options.modid);
     },
     onSuccess: async (response, options) => {
       if (response?.cacheHit) {
@@ -191,7 +189,7 @@ function RouteComponent() {
         return;
       }
       // Add to downloading list
-      setDownloadingMods((prev) => [...prev, { progress: 0, speed: 0, modid: options.modid }]);
+      addDownloadingMod({ progress: 0, speed: 0, modid: options.modid });
 
       // Create listener functions that we can reference for cleanup
       const handleProgress = ({
@@ -204,9 +202,7 @@ function RouteComponent() {
         modid: number;
       }) => {
         if (modid === options.modid) {
-          setDownloadingMods((prev) =>
-            prev.map((v) => (v.modid === options.modid ? { ...v, progress, speed } : v)),
-          );
+          updateDownloadingMod(options.modid, progress, speed);
         }
       };
 
@@ -234,7 +230,7 @@ function RouteComponent() {
 
         // Remove listeners when download ends (completed, error, or cancelled)
         if (status === "completed" || status === "error" || status === "cancelled") {
-          setDownloadingMods((prev) => prev.filter((v) => v.modid !== options.modid));
+          removeDownloadingMod(options.modid);
           electroview.rpc?.removeMessageListener("downloadModProgress", handleProgress);
           electroview.rpc?.removeMessageListener("downloadModStatus", handleStatus);
         }
