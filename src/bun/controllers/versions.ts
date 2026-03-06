@@ -1,4 +1,5 @@
 import { InferRPCSchema } from "@/shared/helper";
+import { createZipReader } from "@holmlibs/unzip";
 import { Utils } from "electrobun";
 import { createWriteStream } from "fs";
 import { cp, exists, mkdir, readdir, rm, stat } from "fs/promises";
@@ -270,29 +271,49 @@ export const versionController = {
         }
 
         console.log("[versions.ts] Starting extraction...");
-        // Extract using Bun.Archive
-        const archiveData = await Bun.file(tempFilePath).arrayBuffer();
-        console.log("[versions.ts] Read archive data, size:", archiveData.byteLength);
-        const archive = new Bun.Archive(archiveData);
-        console.log("[versions.ts] Created archive object");
-        await archive.extract(versionFolder);
-        console.log("[versions.ts] Extraction complete");
+        if (platform !== "windows") {
+          // Extract using Bun.Archive on Mac & Linux
+          const archiveData = await Bun.file(tempFilePath).arrayBuffer();
+          console.log("[versions.ts] Read archive data, size:", archiveData.byteLength);
+          const archive = new Bun.Archive(archiveData);
+          console.log("[versions.ts] Created archive object");
+          await archive.extract(versionFolder);
+          console.log("[versions.ts] Extraction complete");
 
-        // Check if there's a .app folder and extract its contents
-        const extractedContents = await readdir(versionFolder);
-        const appFolder = extractedContents.find((entry) => entry.endsWith(".app"));
-        if (appFolder) {
-          console.log("[versions.ts] Found .app folder:", appFolder);
-          const appPath = join(versionFolder, appFolder);
-          const appContents = await readdir(appPath);
-          for (const entry of appContents) {
-            const srcPath = join(appPath, entry);
-            const destPath = join(versionFolder, entry);
-            await cp(srcPath, destPath, { recursive: true });
+          // Check if there's a .app folder and extract its contents
+          const extractedContents = await readdir(versionFolder);
+          const appFolder = extractedContents.find((entry) => entry.endsWith(".app"));
+          if (appFolder) {
+            console.log("[versions.ts] Found .app folder:", appFolder);
+            const appPath = join(versionFolder, appFolder);
+            const appContents = await readdir(appPath);
+            for (const entry of appContents) {
+              const srcPath = join(appPath, entry);
+              const destPath = join(versionFolder, entry);
+              await cp(srcPath, destPath, { recursive: true });
+            }
+            // Remove the .app folder
+            await rm(appPath, { recursive: true, force: true });
+            console.log("[versions.ts] Moved .app contents to version folder");
           }
-          // Remove the .app folder
-          await rm(appPath, { recursive: true, force: true });
-          console.log("[versions.ts] Moved .app contents to version folder");
+        } else {
+          let allFilesProcessed = false;
+          const zip = createZipReader(tempFilePath);
+          await zip.extractAll(versionFolder, (processed, total) => {
+            if (processed === total) {
+              allFilesProcessed = true;
+            }
+          });
+          if (allFilesProcessed) {
+            // Send success status event
+            mainWindow.webview.rpc?.send("downloadStatus", {
+              id: version,
+              status: "completed",
+              message: "Download and extraction completed successfully",
+            });
+          } else {
+            throw new Error("Extraction on Windows was not succesful");
+          }
         }
 
         // Clean up temp file
