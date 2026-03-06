@@ -13,7 +13,16 @@ export type StoryForgeRPCType = {
       InstallationController["requests"] &
       ModController["requests"] &
       VersionController["requests"] &
-      UtilsController["requests"];
+      UtilsController["requests"] & {
+        lastRoute: {
+          params: undefined;
+          response: string;
+        };
+        setLastRoute: {
+          params: string;
+          response: boolean;
+        };
+      };
     messages: ServerController["messages"] &
       ModController["messages"] &
       VersionController["messages"];

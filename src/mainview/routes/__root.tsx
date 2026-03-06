@@ -1,7 +1,7 @@
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { MainLayout } from "@/mainview/layouts/main";
 import "@/mainview/index.css";
+import { MainLayout } from "@/mainview/layouts/main";
 import type { QueryClient } from "@tanstack/react-query";
+import { createRootRouteWithContext, Outlet, redirect } from "@tanstack/react-router";
 import { domAnimation, LazyMotion } from "motion/react";
 import type { ElectroViewContext } from "../main";
 
@@ -16,4 +16,16 @@ const RootLayout = () => (
 export const Route = createRootRouteWithContext<{
   electroview: ElectroViewContext;
   queryClient: QueryClient;
-}>()({ component: RootLayout });
+}>()({
+  component: RootLayout,
+  beforeLoad: ({ location }) => {
+    const lastVisited = localStorage.getItem("lastVisited");
+    const alreadyVisited = sessionStorage.getItem("alreadyVisited");
+    if (!alreadyVisited) {
+      if (lastVisited && location.pathname === "/" && lastVisited !== "/") {
+        sessionStorage.setItem("alreadyVisited", "true");
+        throw redirect({ to: lastVisited });
+      }
+    }
+  },
+});

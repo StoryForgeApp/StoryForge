@@ -41,6 +41,7 @@ export type ElectroViewContext = typeof electroview;
 const router = createRouter({
   context: { electroview, queryClient },
   routeTree,
+
   Wrap: ({ children }) => (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <ThemeProvider>{children}</ThemeProvider>
@@ -73,6 +74,14 @@ declare module "@tanstack/react-router" {
     router: typeof router;
   }
 }
+
+router.subscribe("onLoad", (e) => {
+  console.log("saved last visited", e.toLocation.pathname, "to local storage");
+  localStorage.setItem(
+    "lastVisited",
+    `${e.toLocation.pathname}${e.toLocation.search ? `?${e.toLocation.searchStr}` : ""}`,
+  );
+});
 
 // Render the app
 const rootElement = document.getElementById("root");

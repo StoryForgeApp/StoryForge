@@ -1,5 +1,5 @@
 import type { StoryForgeRPCType } from "@/shared/rpc";
-import { BrowserView, BrowserWindow, Screen, Updater, Utils } from "electrobun/bun";
+import { BrowserView, BrowserWindow, Screen, Session, Updater, Utils } from "electrobun/bun";
 import { exists, readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { installationController } from "./controllers/installations";
@@ -14,6 +14,7 @@ const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
 const windowConfig = join(Utils.paths.config, "window.json");
 const platform = getPlatform();
+const session = Session.defaultSession;
 
 function getDisplayAtCursor() {
   const cursor = Screen.getCursorScreenPoint();
@@ -90,7 +91,7 @@ export const mainWindow = new BrowserWindow({
     y,
   },
   // @ts-expect-error partition is missing from type definition, but it is supported by BrowserWindow options
-  partition: "persist:storyforge",
+  partition: session.partition,
   rpc: myWebviewRPC,
   title: "Story Forge",
   titleBarStyle: "hiddenInset",
@@ -100,7 +101,9 @@ export const mainWindow = new BrowserWindow({
 });
 
 const handleResizeOrMove = async (e: unknown) => {
-  const event = e as { data: { height?: number; width?: number; x: number; y: number } };
+  const event = e as {
+    data: { height?: number; width?: number; x: number; y: number };
+  };
   const { x, y } = event.data;
   if (event.data.height && event.data.width) {
     windowConfigData.windowHeight = event.data.height;
