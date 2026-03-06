@@ -44,8 +44,6 @@ function InputGroupAddon({
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof inputGroupAddonVariants>) {
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: The addon is not interactive on its own, so it doesn't need to be focusable or respond to keyboard events.
-    // biome-ignore lint/a11y/useSemanticElements: The addon is not interactive on its own, so it doesn't need to be a button or other interactive element.
     <div
       className={cn(inputGroupAddonVariants({ align }), className)}
       data-align={align}

@@ -26,7 +26,7 @@ export function Logo({
       <path
         fill={monoChrome ? "#e5e5e5" : "#ffdb9e"}
         stroke={monoChrome ? "#aaa" : "#d49c6b"}
-        stroke-width="5"
+        strokeWidth="5"
         d="m130 13 54 54 1 2-1 23q0 2-3 2l-20-1-2-1-54-54v-3l22-22z"
       />
     </svg>

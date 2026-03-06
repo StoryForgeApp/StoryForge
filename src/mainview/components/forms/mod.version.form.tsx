@@ -129,3 +129,5 @@ export function ModVersionForm({
     </form>
   );
 }
+
+export type ModVersionFormType = typeof ModVersionForm;
