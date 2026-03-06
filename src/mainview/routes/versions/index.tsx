@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -30,12 +31,6 @@ export const Route = createFileRoute("/versions/")({
   component: RouteComponent,
 });
 
-interface DownloadingVersion {
-  progress: number;
-  speed: number; // in bits per second
-  version: string;
-}
-
 const variations = {
   hidden: { opacity: 0, y: -10 },
   visible: { opacity: 1, y: 0 },
@@ -50,14 +45,17 @@ function RouteComponent() {
     value: string;
   } | null>(null);
   const deleteTimeoutRef = useRef<NodeJS.Timeout>(null);
-  const [downloadingVersions, setDownloadingVersions] = useState<DownloadingVersion[]>([]);
+  const downloadingVersions = useDownloadsStore((state) => state.downloadingVersions);
+  const addDownloadingVersion = useDownloadsStore((state) => state.addDownloadingVersion);
+  const updateDownloadingVersion = useDownloadsStore((state) => state.updateDownloadingVersion);
+  const removeDownloadingVersion = useDownloadsStore((state) => state.removeDownloadingVersion);
 
   const { data: installedVersions, refetch } = useInstalledVersions();
 
   const { mutate: cancelDownload } = useMutation({
     mutationFn: async (version: string) => electroview.rpc?.request.cancelDownload({ version }),
     onSuccess: (_, version) => {
-      setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+      removeDownloadingVersion(version);
     },
   });
 
@@ -65,12 +63,12 @@ function RouteComponent() {
     mutationFn: async (version: string) => electroview.rpc?.request.downloadVersion({ version }),
     onError: (_, version) => {
       // Remove from downloading list on error (including cancellation)
-      setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+      removeDownloadingVersion(version);
     },
     onSuccess: (_, version) => {
       setSelectedVersion(null);
       // Add to downloading list
-      setDownloadingVersions((prev) => [...prev, { progress: 0, speed: 0, version }]);
+      addDownloadingVersion({ progress: 0, speed: 0, version });
 
       // Create listener functions that we can reference for cleanup
       const handleProgress = ({
@@ -83,9 +81,7 @@ function RouteComponent() {
         id: string;
       }) => {
         if (id === version) {
-          setDownloadingVersions((prev) =>
-            prev.map((v) => (v.version === version ? { ...v, progress, speed } : v)),
-          );
+          updateDownloadingVersion(version, progress, speed);
         }
       };
 
@@ -114,7 +110,7 @@ function RouteComponent() {
 
         // Remove listeners when download ends (completed, error, or cancelled)
         if (status === "completed" || status === "error" || status === "cancelled") {
-          setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+          removeDownloadingVersion(version);
           electroview.rpc?.removeMessageListener("downloadProgress", handleProgress);
           electroview.rpc?.removeMessageListener("downloadStatus", handleStatus);
         }
