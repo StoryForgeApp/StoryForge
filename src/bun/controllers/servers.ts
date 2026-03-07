@@ -54,9 +54,7 @@ export const serverController = {
     const servers = v.safeParse(PublicServerSchema, data);
 
     if (!servers.success) {
-      throw new Error(
-        `Invalid servers data - ${Bun.JSON5.stringify(servers.issues.slice(0, 3))}...`,
-      );
+      throw new Error(`Invalid servers data...`);
     }
     if (servers.output.status !== "ok") {
       throw new Error("API returned an error status");
