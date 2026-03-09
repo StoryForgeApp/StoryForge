@@ -27,6 +27,7 @@ import { AlertCircle, ArrowLeft, DownloadCloud, RefreshCw } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import * as v from "valibot";
 import { compareVersions, parseVersion } from "@/lib/utils";
+import { ScrollArea } from "@/mainview/components/ui/scroll-area";
 
 const SearchSchema = v.object({
   path: v.string(),
@@ -262,18 +263,20 @@ function RouteComponent() {
                   <AlertDialogDescription>
                     You are about to update {updateCount} mod
                     {updateCount !== 1 ? "s" : ""} to their latest versions:
-                    <ul className="mt-2 space-y-1 text-sm max-h-48 overflow-y-auto">
-                      {modsWithUpdates.map((mod) => (
-                        <li key={mod.modid} className="flex items-center justify-between gap-2">
-                          <span className="font-medium truncate">{mod.name}</span>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            {mod.currentVersion} → {mod.newVersion}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
+                <ScrollArea className="mt-2 max-h-48" scrollFade>
+                  <ul className="space-y-1 text-sm">
+                    {modsWithUpdates.map((mod) => (
+                      <li key={mod.modid} className="flex items-center justify-between gap-2">
+                        <span className="font-medium truncate">{mod.name}</span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {mod.currentVersion} → {mod.newVersion}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </ScrollArea>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction onClick={handleUpdateAll}>Update All</AlertDialogAction>
@@ -321,12 +324,12 @@ function RouteComponent() {
             />
           </div>
           {updateProgress.errors.length > 0 && (
-            <div className="mt-2 space-y-1">
+            <div className="mt-2 space-y-1 max-w-full truncate">
               <div className="flex items-center gap-1 text-sm text-destructive">
                 <AlertCircle className="size-4" />
                 <span>{updateProgress.errors.length} error(s) occurred:</span>
               </div>
-              <ul className="text-xs text-destructive/80 max-h-20 overflow-y-auto space-y-0.5">
+              <ul className="text-xs text-destructive/80 max-h-20 overflow-y-auto space-y-0.5 truncate">
                 {updateProgress.errors.map((error, index) => (
                   <li key={index} className="truncate">
                     • {error}
