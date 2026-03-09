@@ -34,10 +34,12 @@ import {
 } from "../components/ui/dropdown-menu";
 import { useInstallations } from "../hooks/use-installations";
 import { useInstalledVersions } from "../hooks/use-installed-versions";
+import { useServers } from "../hooks/use-servers";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { data: installedVersions } = useInstalledVersions();
   const { data: installations } = useInstallations();
+  const { data: servers } = useServers();
   return (
     <TooltipProvider>
       <SidebarProvider>
@@ -130,7 +132,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                     <MapPinIcon />
                     Servers
                   </SidebarMenuButton>
-                  <SidebarMenuBadge className="text-xs text-muted-foreground">0</SidebarMenuBadge>
+                  <SidebarMenuBadge className="text-xs text-muted-foreground">
+                    {servers?.length ?? 0}
+                  </SidebarMenuBadge>
                   <SidebarMenuSub>
                     <SidebarMenuSubItem>
                       <SidebarMenuSubButton
