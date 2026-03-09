@@ -1,5 +1,8 @@
 import { InferRPCSchema } from "@/shared/helper";
 import * as v from "valibot";
+import { getInstallationsPath } from "../utils";
+import { join } from "path";
+import { readdir, readFile, exists, stat } from "fs/promises";
 
 const PublicServerSchema = v.object({
   data: v.optional(
@@ -43,6 +46,14 @@ export type PublicServerSummary = {
   whitelisted: boolean;
 };
 
+interface Server {
+  version?: string;
+  installation: string;
+  installationName: string;
+  name: string;
+  ip: string;
+}
+
 export const serverController = {
   getPublicServers: async (): Promise<PublicServerSummary[]> => {
     const response = await fetch("https://masterserver.vintagestory.at/api/v1/servers/list");
@@ -75,6 +86,38 @@ export const serverController = {
       serverName: server.serverName,
       whitelisted: server.whitelisted,
     }));
+  },
+  getServers: async (): Promise<Server[]> => {
+    const installationsPath = await getInstallationsPath();
+    const installations = await readdir(installationsPath);
+    const servers: Server[] = [];
+    for (const installation of installations) {
+      const installationPath = join(installationsPath, installation);
+      const installationExists = await exists(installationPath);
+      if (!installationExists) continue;
+
+      const stats = await stat(installationPath);
+      if (!stats.isDirectory()) continue;
+      const clientSettingsPath = join(installationPath, "clientsettings.json");
+      const installationConfig = join(installationPath, "installation.json");
+      const installationConfigJson = await readFile(installationConfig, "utf-8");
+      const installationConf = Bun.JSON5.parse(installationConfigJson) as Record<string, any>;
+      const clientSettings = await readFile(clientSettingsPath, "utf-8");
+      const clientSettingsJson = Bun.JSON5.parse(clientSettings) as Record<string, any>;
+      const multiplayerServers = clientSettingsJson?.stringListSettings.multiplayerservers;
+      console.log(multiplayerServers);
+      for (const server of multiplayerServers) {
+        servers.push({
+          version: installationConf?.version,
+          name: server.split(",")[0],
+          ip: server.split(",")[1],
+          installation: installation,
+          installationName: installationConf?.name,
+        });
+      }
+    }
+
+    return servers;
   },
 };
 
