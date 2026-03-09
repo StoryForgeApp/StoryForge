@@ -1,6 +1,7 @@
 import { InferRPCSchema } from "@/shared/helper";
 import { Utils } from "electrobun";
 import { getStreamMode } from "../utils";
+import { mainWindow } from "..";
 
 export const utilsController = {
   getStreamMode: async (): Promise<boolean> => {
@@ -8,6 +9,19 @@ export const utilsController = {
   },
   openLink: ({ url }: { url: string }): void => {
     Utils.openExternal(url);
+  },
+  minimize: (): void => {
+    mainWindow.minimize();
+  },
+  maximize: (): void => {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  },
+  quit: (): void => {
+    Utils.quit();
   },
   sendNotification: ({
     title,
