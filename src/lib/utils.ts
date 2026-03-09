@@ -95,3 +95,11 @@ export function formatSize(bytes: number): string {
   if (bytes < 1000000000) return `${(bytes / 1000000).toFixed(1)} MB`;
   return `${(bytes / 1000000000).toFixed(1)} GB`;
 }
+
+export const getPlatform = (): "windows" | "mac" | "linux" | "unknown" | "server" => {
+  if (typeof window === "undefined") return "server";
+  if (window.navigator.userAgent.includes("Win")) return "windows";
+  if (window.navigator.userAgent.includes("Mac")) return "mac";
+  if (window.navigator.userAgent.includes("Linux")) return "linux";
+  return "unknown";
+};
