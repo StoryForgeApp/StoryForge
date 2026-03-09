@@ -26,12 +26,19 @@ import {
   ZoomInIcon,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import * as m from "motion/react-m";
+import { Variants } from "motion/react";
 
 export const Route = createFileRoute("/servers/public")({
   component: RouteComponent,
 });
 
 const tooltipHandle = TooltipCreateHandle<React.ComponentType>();
+
+const variations = {
+  hidden: { opacity: 0, y: -10 },
+  visible: { opacity: 1, y: 0 },
+} as Variants;
 
 function RouteComponent() {
   const { electroview } = useRouteContext({ from: "__root__" });
@@ -123,58 +130,65 @@ function RouteComponent() {
             if (!ps) return null;
             return (
               <div
-                className="left-0 absolute top-0 pb-1 w-full not-last:border-b border-border grid px-2 grid-cols-[minmax(0,1fr)_max-content] gap-2 items-center"
+                className="left-0 absolute top-0 pb-1 w-full not-last:border-b border-border px-2"
                 key={ps.serverIP}
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
-                <div className="h-full flex flex-col justify-between">
-                  <div className="flex flex-col h-full">
-                    <p className="truncate">{ps.serverName}</p>
-                    <p className="font-thin text-xs">{ps.serverIP}</p>
-                    <p className="font-thin text-xs text-muted-foreground truncate">
-                      {ps.gameDescription}
-                    </p>
+                <m.div
+                  variants={variations}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid grid-cols-[minmax(0,1fr)_max-content] gap-2 items-center"
+                >
+                  <div className="h-full flex flex-col justify-between">
+                    <div className="flex flex-col h-full">
+                      <p className="truncate">{ps.serverName}</p>
+                      <p className="font-thin text-xs">{ps.serverIP}</p>
+                      <p className="font-thin text-xs text-muted-foreground truncate">
+                        {ps.gameDescription}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge className="font-thin text-muted-foreground" variant="outline">
+                        <ZapIcon /> {ps.gameVersion}
+                      </Badge>
+                      <Badge className="font-thin text-muted-foreground" variant="outline">
+                        <Users2Icon /> {ps.players}/{ps.maxPlayers}
+                      </Badge>
+                      <Badge className="font-thin text-muted-foreground" variant="outline">
+                        <Package2Icon /> {ps.modCount}
+                      </Badge>
+                      {ps.whitelisted && (
+                        <TooltipTrigger
+                          handle={tooltipHandle}
+                          payload={() => "Whitelisted"}
+                          render={
+                            <Badge className="font-thin text-muted-foreground" variant="outline" />
+                          }
+                        >
+                          <ListCheckIcon />
+                        </TooltipTrigger>
+                      )}
+                      {ps.hasPassword && (
+                        <TooltipTrigger
+                          handle={tooltipHandle}
+                          payload={() => "Password protected"}
+                          render={
+                            <Badge className="font-thin text-muted-foreground" variant="outline" />
+                          }
+                        >
+                          <LockIcon />
+                        </TooltipTrigger>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Badge className="font-thin text-muted-foreground" variant="outline">
-                      <ZapIcon /> {ps.gameVersion}
-                    </Badge>
-                    <Badge className="font-thin text-muted-foreground" variant="outline">
-                      <Users2Icon /> {ps.players}/{ps.maxPlayers}
-                    </Badge>
-                    <Badge className="font-thin text-muted-foreground" variant="outline">
-                      <Package2Icon /> {ps.modCount}
-                    </Badge>
-                    {ps.whitelisted && (
-                      <TooltipTrigger
-                        handle={tooltipHandle}
-                        payload={() => "Whitelisted"}
-                        render={
-                          <Badge className="font-thin text-muted-foreground" variant="outline" />
-                        }
-                      >
-                        <ListCheckIcon />
-                      </TooltipTrigger>
-                    )}
-                    {ps.hasPassword && (
-                      <TooltipTrigger
-                        handle={tooltipHandle}
-                        payload={() => "Password protected"}
-                        render={
-                          <Badge className="font-thin text-muted-foreground" variant="outline" />
-                        }
-                      >
-                        <LockIcon />
-                      </TooltipTrigger>
-                    )}
-                  </div>
-                </div>
-                <Button size="icon" variant="outline">
-                  <PlugZap2Icon />
-                </Button>
+                  <Button size="icon" variant="outline">
+                    <PlugZap2Icon />
+                  </Button>
+                </m.div>
               </div>
             );
           })}
