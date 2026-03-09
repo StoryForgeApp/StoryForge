@@ -16,9 +16,12 @@ import { useIsMobile } from "@/mainview/hooks/use-mobile";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import { PanelLeftIcon } from "lucide-react";
+import { Maximize2Icon, Minimize2Icon, PanelLeftIcon, XIcon } from "lucide-react";
 import * as React from "react";
 import { LogoFull } from "../logo";
+import { getPlatform } from "@/lib/utils";
+import { Group } from "./group";
+import { useRouteContext } from "@tanstack/react-router";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -61,6 +64,9 @@ function SidebarProvider({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
+  const { electroview } = useRouteContext({
+    from: "__root__",
+  });
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
@@ -125,16 +131,58 @@ function SidebarProvider({
     [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
   );
 
+  const platform = getPlatform();
+
   return (
     <SidebarContext.Provider value={contextValue}>
       <div className="group/sidebar-wrapper grid h-screen! grid-rows-[min-content_auto] bg-sidebar transition-all duration-200 ease-linear rounded-xl w-full border border-border overflow-hidden">
         <div className="p-2 w-full grid grid-cols-3 cursor-grab justify-between items-center electrobun-webkit-app-region-drag active:cursor-grabbing shrink-0">
-          <div />
-          <div className="flex items-center justify-center gap-2">
+          <div
+            className={
+              platform === "mac"
+                ? "order-1 flex gap-2 electrobun-webkit-app-region-no-drag cursor-default"
+                : "order-3"
+            }
+          >
+            {platform !== "mac" && (
+              <Group>
+                <Button
+                  variant="ghost"
+                  className="hover:text-green-700 dark:text-green-300"
+                  size="icon-sm"
+                  onClick={() => electroview.rpc?.request.maximize()}
+                >
+                  <Maximize2Icon className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="hover:text-yellow-700 dark:text-yellow-300"
+                  size="icon-sm"
+                  onClick={() => electroview.rpc?.request.minimize()}
+                >
+                  <Minimize2Icon className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="hover:text-destructive"
+                  size="icon-sm"
+                  onClick={() => electroview.rpc?.request.quit()}
+                >
+                  <XIcon className="size-4" />
+                </Button>
+              </Group>
+            )}
+          </div>
+          <div className="flex items-center justify-center gap-2 order-2">
             <LogoFull monoChrome className="w-8 h-8" />
             <p className="text-center font-bold select-none">Story Forge</p>
           </div>
-          <div className="flex items-center gap-2 electrobun-webkit-app-region-no-drag justify-end">
+          <div
+            className={cn(
+              "flex items-center gap-2 electrobun-webkit-app-region-no-drag",
+              platform === "mac" ? "order-3 justify-end" : "order-1",
+            )}
+          >
             <ThemeToggle />
             <SidebarTrigger />
           </div>
@@ -192,7 +240,7 @@ function Sidebar({
     return (
       <Sheet onOpenChange={setOpenMobile} open={openMobile} {...props}>
         <SheetContent
-          className="bg-sidebar transition-all duration-200 ease-linear text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-sidebar transition-all duration-200 ease-linear text-sidebar-foreground w-(--sidebar-width) px-0 pb-0 pt-8 [&>button]:hidden"
           data-mobile="true"
           data-sidebar="sidebar"
           data-slot="sidebar"
