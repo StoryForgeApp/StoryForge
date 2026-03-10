@@ -16,18 +16,13 @@ import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import {
-  ListCheckIcon,
-  LockIcon,
-  Package2Icon,
-  PlugZap2Icon,
-  Users2Icon,
-  ZapIcon,
-  ZoomInIcon,
-} from "lucide-react";
+import { ListCheckIcon, LockIcon, Package2Icon, ZapIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import * as m from "motion/react-m";
 import { Variants } from "motion/react";
+import { SearchIcon } from "@/mainview/components/ui/icons/search";
+import { UsersIcon } from "@/mainview/components/ui/icons/users";
+import { ConnectIcon } from "@/mainview/components/ui/icons/connect";
 
 export const Route = createFileRoute("/servers/public")({
   component: RouteComponent,
@@ -99,7 +94,7 @@ function RouteComponent() {
             value={search}
           />
           <InputGroupAddon>
-            <ZoomInIcon />
+            <SearchIcon />
           </InputGroupAddon>
           <InputGroupAddon align="inline-end">
             <KbdGroup>
@@ -156,7 +151,7 @@ function RouteComponent() {
                         <ZapIcon /> {ps.gameVersion}
                       </Badge>
                       <Badge className="font-thin text-muted-foreground" variant="outline">
-                        <Users2Icon /> {ps.players}/{ps.maxPlayers}
+                        <UsersIcon /> {ps.players}/{ps.maxPlayers}
                       </Badge>
                       <Badge className="font-thin text-muted-foreground" variant="outline">
                         <Package2Icon /> {ps.modCount}
@@ -186,7 +181,7 @@ function RouteComponent() {
                     </div>
                   </div>
                   <Button size="icon" variant="outline">
-                    <PlugZap2Icon />
+                    <ConnectIcon />
                   </Button>
                 </m.div>
               </div>
