@@ -4,6 +4,13 @@ import { Badge } from "@/mainview/components/ui/badge";
 import { Button } from "@/mainview/components/ui/button";
 import { ComboboxTrigger } from "@/mainview/components/ui/combobox";
 import { Group } from "@/mainview/components/ui/group";
+import { ChevronsUpDownIcon } from "@/mainview/components/ui/icons/chevrons-up-down";
+import { CloudDownloadIcon } from "@/mainview/components/ui/icons/cloud-download";
+import { DeleteIcon } from "@/mainview/components/ui/icons/delete";
+import { PlayIcon } from "@/mainview/components/ui/icons/play";
+import { PlusIcon } from "@/mainview/components/ui/icons/plus";
+import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
+import { XIcon } from "@/mainview/components/ui/icons/x";
 import { InputGroup, InputGroupInput } from "@/mainview/components/ui/input-group";
 import { Label } from "@/mainview/components/ui/label";
 import { Popover, PopoverPopup, PopoverTrigger } from "@/mainview/components/ui/popover";
@@ -20,17 +27,7 @@ import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  ChevronsUpDownIcon,
-  DownloadCloudIcon,
-  FolderIcon,
-  PackageSearchIcon,
-  PlayIcon,
-  PlusIcon,
-  RefreshCcw,
-  Trash2Icon,
-  XIcon,
-} from "lucide-react";
+import { FolderIcon, PackageSearchIcon } from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useRef, useState } from "react";
@@ -302,7 +299,7 @@ function RouteComponent() {
           </PopoverPopup>
         </Popover>
         <Button size="icon-sm" variant="outline" onClick={() => refetch()}>
-          <RefreshCcw className="size-3.5" />
+          <RefreshCWIcon className="size-3.5" />
         </Button>
       </div>
 
@@ -443,7 +440,7 @@ function RouteComponent() {
                               />
                             }
                           >
-                            <DownloadCloudIcon className="size-3.5" />
+                            <CloudDownloadIcon className="size-3.5" />
                           </TooltipTrigger>
                         )}
                         <TooltipTrigger
@@ -490,7 +487,7 @@ function RouteComponent() {
                             />
                           }
                         >
-                          <Trash2Icon className="size-3.5" />
+                          <DeleteIcon className="size-3.5" />
                         </TooltipTrigger>
                       </Group>
                     </m.div>
