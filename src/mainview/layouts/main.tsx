@@ -16,25 +16,20 @@ import {
 } from "@/mainview/components/ui/sidebar";
 import { TooltipProvider } from "@/mainview/components/ui/tooltip";
 import { Link } from "@tanstack/react-router";
-import {
-  CircleFadingPlusIcon,
-  EarthIcon,
-  FolderIcon,
-  GlobeIcon,
-  HomeIcon,
-  MapPinIcon,
-  NewspaperIcon,
-  UserIcon,
-  WrenchIcon,
-} from "lucide-react";
+import { CircleFadingPlusIcon, FolderIcon, GlobeIcon, NewspaperIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
-import { useInstallations } from "../hooks/use-installations";
-import { useInstalledVersions } from "../hooks/use-installed-versions";
-import { useServers } from "../hooks/use-servers";
+} from "@/mainview/components/ui/dropdown-menu";
+import { useInstallations } from "@/mainview/hooks/use-installations";
+import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useServers } from "@/mainview/hooks/use-servers";
+import { UserIcon } from "@/mainview/components/ui/icons/user";
+import { HomeIcon } from "@/mainview/components/ui/icons/home";
+import { EarthIcon } from "@/mainview/components/ui/icons/earth";
+import { SettingsIcon } from "@/mainview/components/ui/icons/settings";
+import { MapPinIcon } from "@/mainview/components/ui/icons/map-pin";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { data: installedVersions } = useInstalledVersions();
@@ -204,7 +199,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                       />
                     }
                   >
-                    <WrenchIcon />
+                    <SettingsIcon />
                     Settings
                   </SidebarMenuButton>
                 </SidebarMenuItem>
