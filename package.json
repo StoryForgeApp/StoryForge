@@ -4,15 +4,15 @@
   "description": "Storyforge written in Electrobun with React, Tailwind CSS, and Vite HMR",
   "scripts": {
     "build:canary": "vite build && electrobun build --env=canary",
-    "build:stable": "vite build && electrobun build --env=stable",
     "build:dev": "vite build && electrobun build",
+    "build:stable": "vite build && electrobun build --env=stable",
     "dev": "electrobun dev --watch",
     "dev:hmr": "bun run --parallel \"hmr\" \"electrobun dev --watch\"",
     "format": "bun run --parallel \"oxlint --fix\" oxfmt",
     "hmr": "vite --port 5173",
     "lint": "bun run --parallel \"oxlint\" \"oxfmt --check\"",
-    "start": "vite build && electrobun dev",
-    "prepare": "husky"
+    "prepare": "husky",
+    "start": "vite build && electrobun dev"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
