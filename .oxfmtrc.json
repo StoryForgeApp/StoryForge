@@ -4,6 +4,8 @@
   "sortImports": {
     "newlinesBetween": false
   },
-  "sortPackageJson": true,
+  "sortPackageJson": {
+    "sortScripts": true
+  },
   "sortTailwindcss": {}
 }
