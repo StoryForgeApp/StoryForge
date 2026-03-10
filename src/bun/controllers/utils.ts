@@ -1,7 +1,7 @@
-import { InferRPCSchema } from "@/shared/helper";
 import { Utils } from "electrobun";
-import { getStreamMode } from "../utils";
+import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
+import { getStreamMode } from "../utils";
 
 export const utilsController = {
   getStreamMode: async (): Promise<boolean> => {

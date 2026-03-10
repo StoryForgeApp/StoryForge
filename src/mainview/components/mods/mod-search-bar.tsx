@@ -1,8 +1,8 @@
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/mainview/components/ui/input-group";
-import { Kbd, KbdGroup } from "@/mainview/components/ui/kbd";
 import { formatForDisplay } from "@tanstack/react-hotkeys";
 import type { RefObject } from "react";
 import { SearchIcon } from "@/mainview/components/ui/icons/search";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/mainview/components/ui/input-group";
+import { Kbd, KbdGroup } from "@/mainview/components/ui/kbd";
 
 interface ModSearchBarProps {
   search: string;

@@ -1,8 +1,8 @@
 import "@/mainview/index.css";
-import { MainLayout } from "@/mainview/layouts/main";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet, redirect } from "@tanstack/react-router";
 import { domAnimation, LazyMotion } from "motion/react";
+import { MainLayout } from "@/mainview/layouts/main";
 import type { ElectroViewContext } from "../main";
 
 const RootLayout = () => (

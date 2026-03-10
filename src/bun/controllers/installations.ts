@@ -1,7 +1,7 @@
-import { InferRPCSchema } from "@/shared/helper";
-import { Utils } from "electrobun";
 import { exists, mkdir, readdir, readFile, rm, stat, writeFile } from "fs/promises";
 import { join } from "path";
+import { Utils } from "electrobun";
+import { InferRPCSchema } from "@/shared/helper";
 import {
   getPlatform,
   getInstallationsPath as getUtilsInstallationsPath,

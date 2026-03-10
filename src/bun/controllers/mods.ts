@@ -1,8 +1,8 @@
-import { InferRPCSchema } from "@/shared/helper";
-import { createZipReader } from "@holmlibs/unzip";
 import { createWriteStream } from "fs";
 import { exists, link, mkdir, readdir } from "fs/promises";
 import { join } from "path";
+import { createZipReader } from "@holmlibs/unzip";
+import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
 import { getModsCachePath } from "../utils";
 

@@ -1,3 +1,8 @@
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { AnimatePresence, type Variants } from "motion/react";
+import * as m from "motion/react-m";
+import { useRef, useState } from "react";
 import { compareVersions, formatSize, formatSpeed, parseVersion } from "@/lib/utils";
 import { VersionCombobox } from "@/mainview/components/comboboxes/version.combobox";
 import { Button } from "@/mainview/components/ui/button";
@@ -19,11 +24,6 @@ import {
 } from "@/mainview/components/ui/tooltip";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { AnimatePresence, type Variants } from "motion/react";
-import * as m from "motion/react-m";
-import { useRef, useState } from "react";
 
 export const Route = createFileRoute("/versions/")({
   component: RouteComponent,
@@ -147,17 +147,17 @@ function RouteComponent() {
     deleteTimeoutRef.current && clearTimeout(deleteTimeoutRef.current);
 
   return (
-    <div className="p-2 h-full grid grid-rows-[auto_1fr] gap-2">
-      <div className="w-full grid grid-cols-[1fr_auto] items-center gap-2">
+    <div className="grid h-full grid-rows-[auto_1fr] gap-2 p-2">
+      <div className="grid w-full grid-cols-[1fr_auto] items-center gap-2">
         <VersionCombobox
           onValueChange={(value) =>
             setSelectedVersion(value as { label: string; value: string } | null)
           }
           value={selectedVersion}
           trigger={
-            <Group className="w-full grid grid-cols-[1fr_auto] items-center">
+            <Group className="grid w-full grid-cols-[1fr_auto] items-center">
               <Button
-                className="py-2 justify-start w-full"
+                className="w-full justify-start py-2"
                 render={<ComboboxTrigger />}
                 variant="outline"
               >
@@ -184,12 +184,12 @@ function RouteComponent() {
         </Button>
       </div>
 
-      <ScrollArea className="h-full border border-border rounded-md bg-sidebar">
+      <ScrollArea className="border-border bg-sidebar h-full rounded-md border">
         <AnimatePresence>
           {downloadingVersions.length === 0 && installedVersions?.length === 0 ? (
             <m.div
               animate={{ opacity: 1 }}
-              className="p-4 text-center text-muted-foreground"
+              className="text-muted-foreground p-4 text-center"
               exit={{ opacity: 0 }}
               initial={{ opacity: 0 }}
             >
@@ -202,7 +202,7 @@ function RouteComponent() {
                 {downloadingVersions.map((downloading) => (
                   <m.div
                     animate="visible"
-                    className="p-3 not-last:border-b border-border flex items-center justify-between hover:bg-accent"
+                    className="border-border hover:bg-accent flex items-center justify-between p-3 not-last:border-b"
                     exit="hidden"
                     initial="hidden"
                     key={downloading.version}
@@ -216,16 +216,16 @@ function RouteComponent() {
                           {downloading.version}
                         </m.p>
                         {downloading.progress !== 100 ? (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-muted-foreground text-xs">
                             {formatSpeed(downloading.speed ?? 0)}
                           </p>
                         ) : (
-                          <p className="text-xs text-muted-foreground">Extracting</p>
+                          <p className="text-muted-foreground text-xs">Extracting</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Progress className="flex-1 h-1.5" value={downloading.progress} />
-                        <span className="text-xs text-muted-foreground w-10 text-right">
+                      <div className="mt-1 flex items-center gap-2">
+                        <Progress className="h-1.5 flex-1" value={downloading.progress} />
+                        <span className="text-muted-foreground w-10 text-right text-xs">
                           {downloading.progress}%
                         </span>
                       </div>
@@ -254,7 +254,7 @@ function RouteComponent() {
                   .map((version) => (
                     <m.div
                       animate="visible"
-                      className="p-3 not-last:border-b border-border flex items-center justify-between hover:bg-accent"
+                      className="border-border hover:bg-accent flex items-center justify-between p-3 not-last:border-b"
                       exit="hidden"
                       initial="hidden"
                       key={version.version}
@@ -264,7 +264,7 @@ function RouteComponent() {
                     >
                       <div className="flex items-center gap-2">
                         <m.p layoutId={`version-${version.version}`}>{version.version}</m.p>
-                        <p className="text-xs font-thin text-muted-foreground">
+                        <p className="text-muted-foreground text-xs font-thin">
                           ({formatSize(version.size)})
                         </p>
                       </div>
@@ -287,7 +287,7 @@ function RouteComponent() {
                           payload={() => "Hold to delete"}
                           render={
                             <Button
-                              className="relative after:content-[''] after:absolute after:clip-inset-full active:after:clip-inset-0 after:transition-[clip-path] active:after:duration-[2s] after:duration-200 after:ease-linear after:inset-0 after:-z-1 after:bg-destructive after:rounded-e-md"
+                              className="after:clip-inset-full active:after:clip-inset-0 after:bg-destructive relative after:absolute after:inset-0 after:-z-1 after:rounded-e-md after:transition-[clip-path] after:duration-200 after:ease-linear after:content-[''] active:after:duration-[2s]"
                               onMouseDown={() => handleMouseDownDelete(version.version)}
                               onMouseUp={() => handleMouseUpDelete()}
                               size="icon-sm"

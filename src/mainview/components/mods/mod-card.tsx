@@ -1,22 +1,22 @@
+import { Variants } from "motion/react";
+import * as m from "motion/react-m";
+import type { ComponentType } from "react";
 import { cn } from "@/lib/utils";
+import { ModVersionFormType } from "@/mainview/components/forms/mod.version.form";
 import { Button } from "@/mainview/components/ui/button";
 import { Group } from "@/mainview/components/ui/group";
-import { Progress } from "@/mainview/components/ui/progress";
-import { TooltipPrimitive, TooltipTrigger } from "@/mainview/components/ui/tooltip";
-import { PopoverPrimitive, PopoverTrigger } from "@/mainview/components/ui/popover";
-import type { Mod, InstalledMod, ModUpdate, DownloadingMod } from "@/mainview/types/mods";
-import type { RemoveModFunction, DownloadModFunction } from "@/mainview/hooks/use-mod-mutations";
-import * as m from "motion/react-m";
-import { Variants } from "motion/react";
-import type { ComponentType } from "react";
-import { ModVersionFormType } from "@/mainview/components/forms/mod.version.form";
-import { DownloadIcon } from "@/mainview/components/ui/icons/download";
-import { UsersIcon } from "@/mainview/components/ui/icons/users";
-import { XIcon } from "@/mainview/components/ui/icons/x";
 import { CloudDownloadIcon } from "@/mainview/components/ui/icons/cloud-download";
-import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
+import { DownloadIcon } from "@/mainview/components/ui/icons/download";
 import { HardDriveDownloadIcon } from "@/mainview/components/ui/icons/hard-drive-download";
 import { MessageCircleIcon } from "@/mainview/components/ui/icons/message-circle";
+import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
+import { UsersIcon } from "@/mainview/components/ui/icons/users";
+import { XIcon } from "@/mainview/components/ui/icons/x";
+import { PopoverPrimitive, PopoverTrigger } from "@/mainview/components/ui/popover";
+import { Progress } from "@/mainview/components/ui/progress";
+import { TooltipPrimitive, TooltipTrigger } from "@/mainview/components/ui/tooltip";
+import type { RemoveModFunction, DownloadModFunction } from "@/mainview/hooks/use-mod-mutations";
+import type { Mod, InstalledMod, ModUpdate, DownloadingMod } from "@/mainview/types/mods";
 
 const variations = {
   hidden: { opacity: 0, y: -10 },
@@ -76,21 +76,21 @@ export function ModCard({
         onClick={() => onOpenLink(modUrl)}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 truncate flex-1"
+        className="flex flex-1 items-center gap-2 truncate"
       >
         <img
           src={mod.logo ?? "https://mods.vintagestory.at/web/img/mod-default.png"}
           alt={`${mod.name} logo`}
-          className="w-10 h-10 rounded-md"
+          className="h-10 w-10 rounded-md"
         />
-        <div className="flex flex-col truncate gap-0 flex-1">
-          <p className="font-medium truncate">
+        <div className="flex flex-1 flex-col gap-0 truncate">
+          <p className="truncate font-medium">
             {mod.name}{" "}
             <span className="text-muted-foreground font-normal">
               by{" "}
               <Button
                 variant="link"
-                className="text-yellow-700 dark:text-yellow-200 px-0"
+                className="px-0 text-yellow-700 dark:text-yellow-200"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -101,8 +101,8 @@ export function ModCard({
               </Button>
             </span>
           </p>
-          <p className="text-muted-foreground text-xs truncate">{mod.summary}</p>
-          <div className="flex items-center gap-1 truncate text-muted-foreground">
+          <p className="text-muted-foreground truncate text-xs">{mod.summary}</p>
+          <div className="text-muted-foreground flex items-center gap-1 truncate">
             <DownloadIcon className="size-3" />
             <p className="text-xs">{mod.downloads}</p>
             ·

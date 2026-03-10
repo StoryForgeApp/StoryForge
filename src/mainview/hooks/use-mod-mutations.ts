@@ -1,6 +1,6 @@
 import { useMutation, type UseMutateAsyncFunction } from "@tanstack/react-query";
-import { compareVersions, parseVersion } from "@/lib/utils";
 import { useRouteContext } from "@tanstack/react-router";
+import { compareVersions, parseVersion } from "@/lib/utils";
 
 export type RemoveModFunction = UseMutateAsyncFunction<
   { success: boolean; message?: string } | undefined,

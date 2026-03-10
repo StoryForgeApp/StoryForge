@@ -1,4 +1,3 @@
-import type { StoryForgeRPCType } from "@/shared/rpc";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
@@ -11,6 +10,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { Electroview } from "electrobun/view";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
+import type { StoryForgeRPCType } from "@/shared/rpc";
 import { LogoFull } from "./components/logo";
 import { ThemeProvider } from "./contexts/theme.context";
 import { routeTree } from "./routeTree.gen";
@@ -48,7 +48,7 @@ const router = createRouter({
       <TanStackDevtools
         config={{
           customTrigger: (
-            <LogoFull className="size-12 hover:opacity-100 opacity-0 transition-all duration-300 ease-in-out" />
+            <LogoFull className="size-12 opacity-0 transition-all duration-300 ease-in-out hover:opacity-100" />
           ),
         }}
         plugins={[

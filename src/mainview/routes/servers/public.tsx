@@ -1,7 +1,18 @@
+import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { ListCheckIcon, LockIcon, Package2Icon, ZapIcon } from "lucide-react";
+import { Variants } from "motion/react";
+import * as m from "motion/react-m";
+import { useMemo, useRef, useState } from "react";
 import { VersionCombobox } from "@/mainview/components/comboboxes/version.combobox";
 import { Badge } from "@/mainview/components/ui/badge";
 import { Button } from "@/mainview/components/ui/button";
 import { ComboboxTrigger, ComboboxValue } from "@/mainview/components/ui/combobox";
+import { ConnectIcon } from "@/mainview/components/ui/icons/connect";
+import { SearchIcon } from "@/mainview/components/ui/icons/search";
+import { UsersIcon } from "@/mainview/components/ui/icons/users";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/mainview/components/ui/input-group";
 import { Kbd, KbdGroup } from "@/mainview/components/ui/kbd";
 import { ScrollArea } from "@/mainview/components/ui/scroll-area";
@@ -12,17 +23,6 @@ import {
   TooltipPopup,
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
-import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { ListCheckIcon, LockIcon, Package2Icon, ZapIcon } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
-import * as m from "motion/react-m";
-import { Variants } from "motion/react";
-import { SearchIcon } from "@/mainview/components/ui/icons/search";
-import { UsersIcon } from "@/mainview/components/ui/icons/users";
-import { ConnectIcon } from "@/mainview/components/ui/icons/connect";
 
 export const Route = createFileRoute("/servers/public")({
   component: RouteComponent,
@@ -85,7 +85,7 @@ function RouteComponent() {
   });
 
   return (
-    <div className="h-full grid grid-rows-[auto_1fr] p-2">
+    <div className="grid h-full grid-rows-[auto_1fr] p-2">
       <div className="mb-2 flex items-center justify-between gap-2">
         <InputGroup>
           <InputGroupInput
@@ -115,7 +115,7 @@ function RouteComponent() {
         />
       </div>
       <ScrollArea
-        className="h-full border border-border rounded-lg bg-sidebar"
+        className="border-border bg-sidebar h-full rounded-lg border"
         scrollFade
         viewportRef={scrollRef}
       >
@@ -125,7 +125,7 @@ function RouteComponent() {
             if (!ps) return null;
             return (
               <div
-                className="left-0 absolute top-0 pb-1 w-full not-last:border-b border-border px-2"
+                className="border-border absolute top-0 left-0 w-full px-2 pb-1 not-last:border-b"
                 key={ps.serverIP}
                 style={{
                   height: `${virtualRow.size}px`,
@@ -136,24 +136,24 @@ function RouteComponent() {
                   variants={variations}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-[minmax(0,1fr)_max-content] gap-2 items-center"
+                  className="grid grid-cols-[minmax(0,1fr)_max-content] items-center gap-2"
                 >
-                  <div className="h-full flex flex-col justify-between">
-                    <div className="flex flex-col h-full">
+                  <div className="flex h-full flex-col justify-between">
+                    <div className="flex h-full flex-col">
                       <p className="truncate">{ps.serverName}</p>
-                      <p className="font-thin text-xs">{ps.serverIP}</p>
-                      <p className="font-thin text-xs text-muted-foreground truncate">
+                      <p className="text-xs font-thin">{ps.serverIP}</p>
+                      <p className="text-muted-foreground truncate text-xs font-thin">
                         {ps.gameDescription}
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Badge className="font-thin text-muted-foreground" variant="outline">
+                      <Badge className="text-muted-foreground font-thin" variant="outline">
                         <ZapIcon /> {ps.gameVersion}
                       </Badge>
-                      <Badge className="font-thin text-muted-foreground" variant="outline">
+                      <Badge className="text-muted-foreground font-thin" variant="outline">
                         <UsersIcon /> {ps.players}/{ps.maxPlayers}
                       </Badge>
-                      <Badge className="font-thin text-muted-foreground" variant="outline">
+                      <Badge className="text-muted-foreground font-thin" variant="outline">
                         <Package2Icon /> {ps.modCount}
                       </Badge>
                       {ps.whitelisted && (
@@ -161,7 +161,7 @@ function RouteComponent() {
                           handle={tooltipHandle}
                           payload={() => "Whitelisted"}
                           render={
-                            <Badge className="font-thin text-muted-foreground" variant="outline" />
+                            <Badge className="text-muted-foreground font-thin" variant="outline" />
                           }
                         >
                           <ListCheckIcon />
@@ -172,7 +172,7 @@ function RouteComponent() {
                           handle={tooltipHandle}
                           payload={() => "Password protected"}
                           render={
-                            <Badge className="font-thin text-muted-foreground" variant="outline" />
+                            <Badge className="text-muted-foreground font-thin" variant="outline" />
                           }
                         >
                           <LockIcon />

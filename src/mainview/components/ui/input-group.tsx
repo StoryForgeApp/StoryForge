@@ -1,6 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/mainview/components/ui/button";
 import { Input } from "@/mainview/components/ui/input";

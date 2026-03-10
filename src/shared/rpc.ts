@@ -1,9 +1,9 @@
+import type { RPCSchema } from "electrobun";
 import { InstallationController } from "@/bun/controllers/installations";
 import { ModController } from "@/bun/controllers/mods";
 import { ServerController } from "@/bun/controllers/servers";
 import { UtilsController } from "@/bun/controllers/utils";
 import { VersionController } from "@/bun/controllers/versions";
-import type { RPCSchema } from "electrobun";
 
 // src/shared/types.ts
 export type StoryForgeRPCType = {

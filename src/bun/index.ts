@@ -1,7 +1,7 @@
-import type { StoryForgeRPCType } from "@/shared/rpc";
-import { BrowserView, BrowserWindow, Screen, Session, Updater, Utils } from "electrobun/bun";
 import { exists, readFile, writeFile } from "fs/promises";
 import { join } from "path";
+import { BrowserView, BrowserWindow, Screen, Session, Updater, Utils } from "electrobun/bun";
+import type { StoryForgeRPCType } from "@/shared/rpc";
 import { installationController } from "./controllers/installations";
 import { modController } from "./controllers/mods";
 import { serverController } from "./controllers/servers";

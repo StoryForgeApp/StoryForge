@@ -1,8 +1,8 @@
-import { InferRPCSchema } from "@/shared/helper";
-import * as v from "valibot";
-import { getInstallationsPath } from "../utils";
-import { join } from "path";
 import { readdir, readFile, exists, stat } from "fs/promises";
+import { join } from "path";
+import * as v from "valibot";
+import { InferRPCSchema } from "@/shared/helper";
+import { getInstallationsPath } from "../utils";
 
 const PublicServerSchema = v.object({
   data: v.optional(

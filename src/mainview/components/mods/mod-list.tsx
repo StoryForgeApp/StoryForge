@@ -1,12 +1,12 @@
-import { ScrollArea } from "@/mainview/components/ui/scroll-area";
-import type { Mod, InstalledMod, ModUpdate, DownloadingMod } from "@/mainview/types/mods";
-import type { RemoveModFunction, DownloadModFunction } from "@/mainview/hooks/use-mod-mutations";
 import type { VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import type { RefObject, ComponentType } from "react";
+import { ModVersionFormType } from "@/mainview/components/forms/mod.version.form";
+import { PopoverPrimitive } from "@/mainview/components/ui/popover";
+import { ScrollArea } from "@/mainview/components/ui/scroll-area";
+import { TooltipPrimitive } from "@/mainview/components/ui/tooltip";
+import type { RemoveModFunction, DownloadModFunction } from "@/mainview/hooks/use-mod-mutations";
+import type { Mod, InstalledMod, ModUpdate, DownloadingMod } from "@/mainview/types/mods";
 import { ModCard } from "./mod-card";
-import { TooltipPrimitive } from "../ui/tooltip";
-import { PopoverPrimitive } from "../ui/popover";
-import { ModVersionFormType } from "../forms/mod.version.form";
 
 interface ModListProps {
   mods: Mod[];
@@ -48,7 +48,7 @@ export function ModList({
 }: ModListProps) {
   return (
     <ScrollArea
-      className="h-full border border-border rounded-md bg-sidebar"
+      className="border-border bg-sidebar h-full rounded-md border"
       scrollFade
       viewportRef={scrollRef}
     >
@@ -72,7 +72,7 @@ export function ModList({
 
           return (
             <div
-              className="left-0 absolute top-0 w-full not-last:border-b border-border flex items-center justify-between hover:bg-accent"
+              className="border-border hover:bg-accent absolute top-0 left-0 flex w-full items-center justify-between not-last:border-b"
               key={mod.modid}
               style={{
                 height: `${virtualRow.size}px`,

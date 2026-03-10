@@ -1,10 +1,10 @@
-import { InferRPCSchema } from "@/shared/helper";
-import { createZipReader } from "@holmlibs/unzip";
-import { Utils } from "electrobun";
 import { createWriteStream } from "fs";
 import { cp, exists, mkdir, readdir, rm, stat } from "fs/promises";
 import { join } from "path";
+import { createZipReader } from "@holmlibs/unzip";
+import { Utils } from "electrobun";
 import * as v from "valibot";
+import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
 import { getPlatform, getVersionsPath as getUtilsVersionsPath } from "../utils";
 

@@ -1,3 +1,10 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { AlertCircle } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import * as v from "valibot";
+import { compareVersions, parseVersion } from "@/lib/utils";
 import { ModVersionForm } from "@/mainview/components/forms/mod.version.form";
 import { ModFilterPanel, ModList, ModSearchBar, ModSortSelect } from "@/mainview/components/mods";
 import {
@@ -14,23 +21,15 @@ import {
 import { Badge } from "@/mainview/components/ui/badge";
 import { Button } from "@/mainview/components/ui/button";
 import { Group } from "@/mainview/components/ui/group";
-import { Popover, PopoverCreateHandle, PopoverPopup } from "@/mainview/components/ui/popover";
-import { Tooltip, TooltipCreateHandle, TooltipPopup } from "@/mainview/components/ui/tooltip";
-import { useMods } from "@/mainview/hooks/use-mods";
-import { useModMutations } from "@/mainview/hooks/use-mod-mutations";
-import { useDownloadsStore } from "@/mainview/stores/downloads.store";
-
-import { useHotkey } from "@tanstack/react-hotkeys";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { AlertCircle } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
-import * as v from "valibot";
-import { compareVersions, parseVersion } from "@/lib/utils";
-import { ScrollArea } from "@/mainview/components/ui/scroll-area";
 import { ArrowLeftIcon } from "@/mainview/components/ui/icons/arrow-left";
 import { CloudDownloadIcon } from "@/mainview/components/ui/icons/cloud-download";
 import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
+import { Popover, PopoverCreateHandle, PopoverPopup } from "@/mainview/components/ui/popover";
+import { ScrollArea } from "@/mainview/components/ui/scroll-area";
+import { Tooltip, TooltipCreateHandle, TooltipPopup } from "@/mainview/components/ui/tooltip";
+import { useModMutations } from "@/mainview/hooks/use-mod-mutations";
+import { useMods } from "@/mainview/hooks/use-mods";
+import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 
 const SearchSchema = v.object({
   path: v.string(),
@@ -231,9 +230,9 @@ function RouteComponent() {
   });
 
   return (
-    <div className="p-2 h-full grid grid-rows-[auto_1fr] gap-2">
-      <div className="w-full flex flex-col gap-1">
-        <div className="w-full grid grid-cols-[auto_1fr_auto_auto] items-center gap-2">
+    <div className="grid h-full grid-rows-[auto_1fr] gap-2 p-2">
+      <div className="flex w-full flex-col gap-1">
+        <div className="grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-2">
           <Button variant="outline" onClick={() => navigate({ to: "/installations" })}>
             <ArrowLeftIcon className="size-3" />
             Back
@@ -272,8 +271,8 @@ function RouteComponent() {
                   <ul className="space-y-1 text-sm">
                     {modsWithUpdates.map((mod) => (
                       <li key={mod.modid} className="flex items-center justify-between gap-2">
-                        <span className="font-medium truncate">{mod.name}</span>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        <span className="truncate font-medium">{mod.name}</span>
+                        <span className="text-muted-foreground text-xs whitespace-nowrap">
                           {mod.currentVersion} → {mod.newVersion}
                         </span>
                       </li>
@@ -288,7 +287,7 @@ function RouteComponent() {
             </AlertDialog>
           )}
           {isUpdatingAll && updateProgress && (
-            <Group className="items-center gap-2 px-3 py-2 bg-muted rounded-md">
+            <Group className="bg-muted items-center gap-2 rounded-md px-3 py-2">
               <RefreshCWIcon className="size-4 animate-spin" />
               <span className="text-sm font-medium">
                 {updateProgress.current}/{updateProgress.total}
@@ -311,28 +310,28 @@ function RouteComponent() {
 
       {/* Global Progress Indicator */}
       {isUpdatingAll && updateProgress && (
-        <div className="bg-muted/50 border rounded-md p-3 mb-2">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-muted/50 mb-2 rounded-md border p-3">
+          <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium">Updating mods...</span>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               {updateProgress.current} of {updateProgress.total}
             </span>
           </div>
-          <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+          <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
             <div
-              className="h-full bg-primary transition-all duration-300"
+              className="bg-primary h-full transition-all duration-300"
               style={{
                 width: `${(updateProgress.current / updateProgress.total) * 100}%`,
               }}
             />
           </div>
           {updateProgress.errors.length > 0 && (
-            <div className="mt-2 space-y-1 max-w-full truncate">
-              <div className="flex items-center gap-1 text-sm text-destructive">
+            <div className="mt-2 max-w-full space-y-1 truncate">
+              <div className="text-destructive flex items-center gap-1 text-sm">
                 <AlertCircle className="size-4" />
                 <span>{updateProgress.errors.length} error(s) occurred:</span>
               </div>
-              <ul className="text-xs text-destructive/80 max-h-20 overflow-y-auto space-y-0.5 truncate">
+              <ul className="text-destructive/80 max-h-20 space-y-0.5 truncate overflow-y-auto text-xs">
                 {updateProgress.errors.map((error, index) => (
                   <li key={index} className="truncate">
                     • {error}

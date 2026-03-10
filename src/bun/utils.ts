@@ -1,6 +1,6 @@
-import { Utils } from "electrobun/bun";
 import { mkdirSync } from "fs";
 import { join } from "path";
+import { Utils } from "electrobun/bun";
 
 export const configFile = Bun.file(join(Utils.paths.appData, "storyforge", "config.json"));
 export const oldSettingsFile = Bun.file(

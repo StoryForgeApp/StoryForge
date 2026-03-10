@@ -1,3 +1,15 @@
+import { Link } from "@tanstack/react-router";
+import { CircleFadingPlusIcon, FolderIcon, GlobeIcon, NewspaperIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/mainview/components/ui/dropdown-menu";
+import { EarthIcon } from "@/mainview/components/ui/icons/earth";
+import { HomeIcon } from "@/mainview/components/ui/icons/home";
+import { MapPinIcon } from "@/mainview/components/ui/icons/map-pin";
+import { SettingsIcon } from "@/mainview/components/ui/icons/settings";
+import { UserIcon } from "@/mainview/components/ui/icons/user";
 import {
   Sidebar,
   SidebarContent,
@@ -15,21 +27,9 @@ import {
   SidebarProvider,
 } from "@/mainview/components/ui/sidebar";
 import { TooltipProvider } from "@/mainview/components/ui/tooltip";
-import { Link } from "@tanstack/react-router";
-import { CircleFadingPlusIcon, FolderIcon, GlobeIcon, NewspaperIcon } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/mainview/components/ui/dropdown-menu";
 import { useInstallations } from "@/mainview/hooks/use-installations";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
 import { useServers } from "@/mainview/hooks/use-servers";
-import { UserIcon } from "@/mainview/components/ui/icons/user";
-import { HomeIcon } from "@/mainview/components/ui/icons/home";
-import { EarthIcon } from "@/mainview/components/ui/icons/earth";
-import { SettingsIcon } from "@/mainview/components/ui/icons/settings";
-import { MapPinIcon } from "@/mainview/components/ui/icons/map-pin";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { data: installedVersions } = useInstalledVersions();
@@ -46,13 +46,13 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   <SidebarMenuButton render={<DropdownMenuTrigger />}>
                     <UserIcon />
                     Account(s)
-                    <SidebarMenuBadge className="text-xs text-muted-foreground">
+                    <SidebarMenuBadge className="text-muted-foreground text-xs">
                       {">"}
                     </SidebarMenuBadge>
                   </SidebarMenuButton>
                   <DropdownMenuContent align="start" side="right">
                     <div className="p-2">
-                      <p className="text-sm text-muted-foreground">No accounts yet</p>
+                      <p className="text-muted-foreground text-sm">No accounts yet</p>
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -91,7 +91,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                     <FolderIcon />
                     Installations
                   </SidebarMenuButton>
-                  <SidebarMenuBadge className="text-xs text-muted-foreground">
+                  <SidebarMenuBadge className="text-muted-foreground text-xs">
                     {installations?.length ?? 0}
                   </SidebarMenuBadge>
                   <SidebarMenuSub>
@@ -127,7 +127,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                     <MapPinIcon />
                     Servers
                   </SidebarMenuButton>
-                  <SidebarMenuBadge className="text-xs text-muted-foreground">
+                  <SidebarMenuBadge className="text-muted-foreground text-xs">
                     {servers?.length ?? 0}
                   </SidebarMenuBadge>
                   <SidebarMenuSub>
@@ -163,7 +163,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                     <CircleFadingPlusIcon />
                     Versions
                   </SidebarMenuButton>
-                  <SidebarMenuBadge className="text-xs text-muted-foreground">
+                  <SidebarMenuBadge className="text-muted-foreground text-xs">
                     {installedVersions?.length ?? 0}
                   </SidebarMenuBadge>
                 </SidebarMenuItem>

@@ -1,6 +1,18 @@
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import { useRouteContext } from "@tanstack/react-router";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 import { cn } from "@/lib/utils";
+import { getPlatform } from "@/lib/utils";
+import { LogoFull } from "@/mainview/components/logo";
 import { ThemeToggle } from "@/mainview/components/theme.toggle";
 import { Button } from "@/mainview/components/ui/button";
+import { Group } from "@/mainview/components/ui/group";
+import { MaximizeIcon } from "@/mainview/components/ui/icons/maximize";
+import { MinimizeIcon } from "@/mainview/components/ui/icons/minimize";
+import { PanelLeftCloseIcon } from "@/mainview/components/ui/icons/panel-left-close";
+import { XIcon } from "@/mainview/components/ui/icons/x";
 import { Input } from "@/mainview/components/ui/input";
 import { Separator } from "@/mainview/components/ui/separator";
 import {
@@ -13,18 +25,6 @@ import {
 import { Skeleton } from "@/mainview/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/mainview/components/ui/tooltip";
 import { useIsMobile } from "@/mainview/hooks/use-mobile";
-import { mergeProps } from "@base-ui/react/merge-props";
-import { useRender } from "@base-ui/react/use-render";
-import { cva, type VariantProps } from "class-variance-authority";
-import * as React from "react";
-import { LogoFull } from "@/mainview/components/logo";
-import { getPlatform } from "@/lib/utils";
-import { Group } from "@/mainview/components/ui/group";
-import { useRouteContext } from "@tanstack/react-router";
-import { MaximizeIcon } from "@/mainview/components/ui/icons/maximize";
-import { MinimizeIcon } from "@/mainview/components/ui/icons/minimize";
-import { XIcon } from "@/mainview/components/ui/icons/x";
-import { PanelLeftCloseIcon } from "@/mainview/components/ui/icons/panel-left-close";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -138,12 +138,12 @@ function SidebarProvider({
 
   return (
     <SidebarContext.Provider value={contextValue}>
-      <div className="group/sidebar-wrapper grid h-screen! grid-rows-[min-content_auto] bg-sidebar transition-all duration-200 ease-linear rounded-xl w-full border border-border overflow-hidden">
-        <div className="p-2 w-full grid grid-cols-3 cursor-grab justify-between items-center electrobun-webkit-app-region-drag active:cursor-grabbing shrink-0">
+      <div className="group/sidebar-wrapper bg-sidebar border-border grid h-screen! w-full grid-rows-[min-content_auto] overflow-hidden rounded-xl border transition-all duration-200 ease-linear">
+        <div className="electrobun-webkit-app-region-drag grid w-full shrink-0 cursor-grab grid-cols-3 items-center justify-between p-2 active:cursor-grabbing">
           <div
             className={
               platform === "mac"
-                ? "order-1 flex gap-2 electrobun-webkit-app-region-no-drag cursor-default"
+                ? "electrobun-webkit-app-region-no-drag order-1 flex cursor-default gap-2"
                 : "order-3"
             }
           >
@@ -176,8 +176,8 @@ function SidebarProvider({
               </Group>
             )}
           </div>
-          <div className="flex items-center justify-center gap-2 order-2">
-            <LogoFull monoChrome className="w-8 h-8" />
+          <div className="order-2 flex items-center justify-center gap-2">
+            <LogoFull monoChrome className="h-8 w-8" />
             <p className="text-center font-bold select-none">Story Forge</p>
           </div>
           <div
@@ -243,7 +243,7 @@ function Sidebar({
     return (
       <Sheet onOpenChange={setOpenMobile} open={openMobile} {...props}>
         <SheetContent
-          className="bg-sidebar transition-all duration-200 ease-linear text-sidebar-foreground w-(--sidebar-width) px-0 pb-0 pt-8 [&>button]:hidden"
+          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) px-0 pt-8 pb-0 transition-all duration-200 ease-linear [&>button]:hidden"
           data-mobile="true"
           data-sidebar="sidebar"
           data-slot="sidebar"
@@ -299,7 +299,7 @@ function Sidebar({
         {...props}
       >
         <div
-          className="bg-sidebar transition-all duration-200 ease-linear group-data-[variant=floating]:ring-sidebar-border group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 flex size-full flex-col"
+          className="bg-sidebar group-data-[variant=floating]:ring-sidebar-border flex size-full flex-col transition-all duration-200 ease-linear group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1"
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
         >

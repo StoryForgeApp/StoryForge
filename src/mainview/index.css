@@ -132,9 +132,9 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply font-sans bg-transparent text-foreground overflow-hidden h-screen;
+    @apply text-foreground h-screen overflow-hidden bg-transparent font-sans;
   }
   html {
-    @apply font-sans bg-transparent overflow-hidden h-screen;
+    @apply h-screen overflow-hidden bg-transparent font-sans;
   }
 }

@@ -2,7 +2,6 @@
 
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
-
 import { cn } from "@/lib/utils";
 import { Label } from "@/mainview/components/ui/label";
 import { Separator } from "@/mainview/components/ui/separator";
@@ -153,7 +152,7 @@ function FieldSeparator({
       <Separator className="absolute inset-0 top-1/2" />
       {children && (
         <span
-          className="text-muted-foreground px-2 bg-background relative mx-auto block w-fit"
+          className="text-muted-foreground bg-background relative mx-auto block w-fit px-2"
           data-slot="field-separator-content"
         >
           {children}
