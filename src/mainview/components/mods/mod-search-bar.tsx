@@ -1,8 +1,8 @@
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/mainview/components/ui/input-group";
 import { Kbd, KbdGroup } from "@/mainview/components/ui/kbd";
 import { formatForDisplay } from "@tanstack/react-hotkeys";
-import { ZoomInIcon } from "lucide-react";
 import type { RefObject } from "react";
+import { SearchIcon } from "@/mainview/components/ui/icons/search";
 
 interface ModSearchBarProps {
   search: string;
@@ -19,7 +19,7 @@ export function ModSearchBar({ search, onSearchChange, searchRef }: ModSearchBar
         value={search}
       />
       <InputGroupAddon>
-        <ZoomInIcon />
+        <SearchIcon />
       </InputGroupAddon>
       <InputGroupAddon align="inline-end">
         <KbdGroup>
