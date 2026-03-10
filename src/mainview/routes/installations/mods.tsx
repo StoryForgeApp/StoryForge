@@ -23,11 +23,14 @@ import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { AlertCircle, ArrowLeft, DownloadCloud, RefreshCw } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import * as v from "valibot";
 import { compareVersions, parseVersion } from "@/lib/utils";
 import { ScrollArea } from "@/mainview/components/ui/scroll-area";
+import { ArrowLeftIcon } from "@/mainview/components/ui/icons/arrow-left";
+import { CloudDownloadIcon } from "@/mainview/components/ui/icons/cloud-download";
+import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
 
 const SearchSchema = v.object({
   path: v.string(),
@@ -232,7 +235,7 @@ function RouteComponent() {
       <div className="w-full flex flex-col gap-1">
         <div className="w-full grid grid-cols-[auto_1fr_auto_auto] items-center gap-2">
           <Button variant="outline" onClick={() => navigate({ to: "/installations" })}>
-            <ArrowLeft className="size-3" />
+            <ArrowLeftIcon className="size-3" />
             Back
           </Button>
           <ModSearchBar
@@ -249,7 +252,7 @@ function RouteComponent() {
               <AlertDialogTrigger
                 render={
                   <Button variant="default" className="gap-2">
-                    <DownloadCloud className="size-4" />
+                    <CloudDownloadIcon className="size-4" />
                     Update All
                     <Badge variant="secondary" className="ml-1">
                       {updateCount}
@@ -286,7 +289,7 @@ function RouteComponent() {
           )}
           {isUpdatingAll && updateProgress && (
             <Group className="items-center gap-2 px-3 py-2 bg-muted rounded-md">
-              <RefreshCw className="size-4 animate-spin" />
+              <RefreshCWIcon className="size-4 animate-spin" />
               <span className="text-sm font-medium">
                 {updateProgress.current}/{updateProgress.total}
               </span>
