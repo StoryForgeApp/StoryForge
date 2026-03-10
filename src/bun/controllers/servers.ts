@@ -105,7 +105,6 @@ export const serverController = {
       const clientSettings = await readFile(clientSettingsPath, "utf-8");
       const clientSettingsJson = Bun.JSON5.parse(clientSettings) as Record<string, any>;
       const multiplayerServers = clientSettingsJson?.stringListSettings.multiplayerservers;
-      console.log(multiplayerServers);
       for (const server of multiplayerServers) {
         servers.push({
           version: installationConf?.version,
