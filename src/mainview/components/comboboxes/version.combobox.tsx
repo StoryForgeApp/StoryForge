@@ -1,13 +1,14 @@
 import { sortVersions } from "@/lib/utils";
 import { useAllVersions } from "@/mainview/hooks/use-all-versions";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
-import { RefreshCcw, SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Combobox, ComboboxInput, ComboboxItem, ComboboxList, ComboboxPopup } from "../ui/combobox";
 import { Label } from "../ui/label";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
+import { SearchIcon } from "../ui/icons/search";
+import { RefreshCWIcon } from "../ui/icons/refresh-cw";
 
 export function VersionCombobox({
   trigger,
@@ -59,7 +60,7 @@ export function VersionCombobox({
                   />
                 }
               >
-                <RefreshCcw className="size-3.5" />
+                <RefreshCWIcon className="size-3.5" />
               </TooltipTrigger>
               <TooltipPopup>Refresh version list</TooltipPopup>
             </Tooltip>
