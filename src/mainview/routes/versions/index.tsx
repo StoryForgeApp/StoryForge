@@ -3,6 +3,12 @@ import { VersionCombobox } from "@/mainview/components/comboboxes/version.combob
 import { Button } from "@/mainview/components/ui/button";
 import { ComboboxTrigger } from "@/mainview/components/ui/combobox";
 import { Group } from "@/mainview/components/ui/group";
+import { CloudDownloadIcon } from "@/mainview/components/ui/icons/cloud-download";
+import { DeleteIcon } from "@/mainview/components/ui/icons/delete";
+import { FolderOpenIcon } from "@/mainview/components/ui/icons/folder-open";
+import { PlusIcon } from "@/mainview/components/ui/icons/plus";
+import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
+import { XIcon } from "@/mainview/components/ui/icons/x";
 import { Progress } from "@/mainview/components/ui/progress";
 import { ScrollArea } from "@/mainview/components/ui/scroll-area";
 import {
@@ -15,14 +21,6 @@ import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  DownloadCloudIcon,
-  FolderIcon,
-  PlusIcon,
-  RefreshCcw,
-  Trash2Icon,
-  XIcon,
-} from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useRef, useState } from "react";
@@ -175,14 +173,14 @@ function RouteComponent() {
               {selectedVersion && (
                 <Button onClick={() => downloadVersion(selectedVersion.value)} variant="default">
                   Download
-                  <DownloadCloudIcon />
+                  <CloudDownloadIcon />
                 </Button>
               )}
             </Group>
           }
         />
         <Button variant="outline" size="icon-sm" onClick={() => refetch()}>
-          <RefreshCcw className="size-3.5" />
+          <RefreshCWIcon className="size-3.5" />
         </Button>
       </div>
 
@@ -282,7 +280,7 @@ function RouteComponent() {
                             />
                           }
                         >
-                          <FolderIcon className="size-3.5" />
+                          <FolderOpenIcon className="size-3.5" />
                         </TooltipTrigger>
                         <TooltipTrigger
                           handle={tooltipHandle}
@@ -297,7 +295,7 @@ function RouteComponent() {
                             />
                           }
                         >
-                          <Trash2Icon className="size-3.5" />
+                          <DeleteIcon className="size-3.5" />
                         </TooltipTrigger>
                       </Group>
                     </m.div>
