@@ -6,19 +6,17 @@ import { TooltipPrimitive, TooltipTrigger } from "@/mainview/components/ui/toolt
 import { PopoverPrimitive, PopoverTrigger } from "@/mainview/components/ui/popover";
 import type { Mod, InstalledMod, ModUpdate, DownloadingMod } from "@/mainview/types/mods";
 import type { RemoveModFunction, DownloadModFunction } from "@/mainview/hooks/use-mod-mutations";
-import {
-  DownloadIcon,
-  Users2Icon,
-  MessageCircle,
-  XIcon,
-  DownloadCloudIcon,
-  RefreshCcw,
-  HardDriveDownloadIcon,
-} from "lucide-react";
 import * as m from "motion/react-m";
 import { Variants } from "motion/react";
 import type { ComponentType } from "react";
-import { ModVersionFormType } from "../forms/mod.version.form";
+import { ModVersionFormType } from "@/mainview/components/forms/mod.version.form";
+import { DownloadIcon } from "@/mainview/components/ui/icons/download";
+import { UsersIcon } from "@/mainview/components/ui/icons/users";
+import { XIcon } from "@/mainview/components/ui/icons/x";
+import { CloudDownloadIcon } from "@/mainview/components/ui/icons/cloud-download";
+import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
+import { HardDriveDownloadIcon } from "@/mainview/components/ui/icons/hard-drive-download";
+import { MessageCircleIcon } from "@/mainview/components/ui/icons/message-circle";
 
 const variations = {
   hidden: { opacity: 0, y: -10 },
@@ -108,10 +106,10 @@ export function ModCard({
             <DownloadIcon className="size-3" />
             <p className="text-xs">{mod.downloads}</p>
             ·
-            <Users2Icon className="size-3" />
+            <UsersIcon className="size-3" />
             <p className="text-xs">{mod.follows}</p>
             ·
-            <MessageCircle className="size-3" />
+            <MessageCircleIcon className="size-3" />
             <p className="text-xs">{mod.comments}</p>
             {isDownloading && downloadingMod && <Progress value={downloadingMod.progress} />}
           </div>
@@ -155,7 +153,7 @@ export function ModCard({
               />
             }
           >
-            <DownloadCloudIcon className="size-3.5" />
+            <CloudDownloadIcon className="size-3.5" />
           </TooltipTrigger>
         )}
         {!installedMod && !isDownloading && (
@@ -170,7 +168,7 @@ export function ModCard({
               />
             }
           >
-            <DownloadCloudIcon className="size-3.5" />
+            <CloudDownloadIcon className="size-3.5" />
           </TooltipTrigger>
         )}
         {!isDownloading && (
@@ -194,7 +192,7 @@ export function ModCard({
             }
           >
             {installedMod ? (
-              <RefreshCcw className="size-3.5" />
+              <RefreshCWIcon className="size-3.5" />
             ) : (
               <HardDriveDownloadIcon className="size-3.5" />
             )}
