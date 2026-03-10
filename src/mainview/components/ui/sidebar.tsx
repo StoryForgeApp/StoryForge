@@ -16,12 +16,15 @@ import { useIsMobile } from "@/mainview/hooks/use-mobile";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Maximize2Icon, Minimize2Icon, PanelLeftIcon, XIcon } from "lucide-react";
 import * as React from "react";
-import { LogoFull } from "../logo";
+import { LogoFull } from "@/mainview/components/logo";
 import { getPlatform } from "@/lib/utils";
-import { Group } from "./group";
+import { Group } from "@/mainview/components/ui/group";
 import { useRouteContext } from "@tanstack/react-router";
+import { MaximizeIcon } from "@/mainview/components/ui/icons/maximize";
+import { MinimizeIcon } from "@/mainview/components/ui/icons/minimize";
+import { XIcon } from "@/mainview/components/ui/icons/x";
+import { PanelLeftCloseIcon } from "@/mainview/components/ui/icons/panel-left-close";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -152,7 +155,7 @@ function SidebarProvider({
                   size="icon-sm"
                   onClick={() => electroview.rpc?.request.maximize()}
                 >
-                  <Maximize2Icon className="size-4" />
+                  <MaximizeIcon className="size-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -160,7 +163,7 @@ function SidebarProvider({
                   size="icon-sm"
                   onClick={() => electroview.rpc?.request.minimize()}
                 >
-                  <Minimize2Icon className="size-4" />
+                  <MinimizeIcon className="size-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -323,7 +326,7 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
       variant="ghost"
       {...props}
     >
-      <PanelLeftIcon />
+      <PanelLeftCloseIcon />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
@@ -711,7 +714,7 @@ function SidebarMenuSubButton({
     props: mergeProps<"a">(
       {
         className: cn(
-          "text-muted-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground [&>svg]:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground h-7 gap-2 rounded-md px-2 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:[&>svg]:text-muted-foreground focus-visible:ring-2 data-[size=md]:text-sm data-[size=sm]:text-xs [&>svg]:size-4 flex min-w-0 -translate-x-px items-center overflow-hidden outline-hidden disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:shrink-0",
+          "text-muted-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground [&>svg]:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground h-7 gap-2 rounded-md px-2 group-data-[collapsible=icon]:h-7! group-data-[collapsible=icon]:w-8! group-data-[collapsible=icon]:[&>svg]:text-muted-foreground focus-visible:ring-2 data-[size=md]:text-sm data-[size=sm]:text-xs  [&_svg]:size-4 [&_svg]:shrink-0 flex min-w-0 -translate-x-px items-center overflow-hidden outline-hidden disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:shrink-0",
           className,
         ),
       },
