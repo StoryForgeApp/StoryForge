@@ -9,11 +9,13 @@ import { SelectButton } from "@/mainview/components/ui/select";
 import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
 import { createFileRoute } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { PlugZap2Icon, ZapIcon, ZoomInIcon } from "lucide-react";
+import { ZapIcon } from "lucide-react";
 import { Variants } from "motion/react";
 import { useMemo, useRef, useState } from "react";
 import * as m from "motion/react-m";
 import { useServers } from "@/mainview/hooks/use-servers";
+import { SearchIcon } from "@/mainview/components/ui/icons/search";
+import { ConnectIcon } from "@/mainview/components/ui/icons/connect";
 
 export const Route = createFileRoute("/servers/")({
   component: RouteComponent,
@@ -75,7 +77,7 @@ function RouteComponent() {
             value={search}
           />
           <InputGroupAddon>
-            <ZoomInIcon />
+            <SearchIcon />
           </InputGroupAddon>
           <InputGroupAddon align="inline-end">
             <KbdGroup>
@@ -131,7 +133,7 @@ function RouteComponent() {
                     </div>
                   </div>
                   <Button size="icon" variant="outline">
-                    <PlugZap2Icon />
+                    <ConnectIcon />
                   </Button>
                 </m.div>
               </div>
