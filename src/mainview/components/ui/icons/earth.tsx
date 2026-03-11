@@ -71,7 +71,7 @@ const EarthIcon = forwardRef<EarthIconHandle, EarthIconProps>(
           <motion.path
             animate={controls}
             d="M21.54 15H17a2 2 0 0 0-2 2v4.54"
-            transition={{ duration: 0.7, delay: 0.5, opacity: { delay: 0.5 } }}
+            transition={{ duration: 0.7 }}
             variants={{
               normal: {
                 pathLength: 1,
@@ -88,7 +88,7 @@ const EarthIcon = forwardRef<EarthIconHandle, EarthIconProps>(
           <motion.path
             animate={controls}
             d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"
-            transition={{ duration: 0.7, delay: 0.5, opacity: { delay: 0.5 } }}
+            transition={{ duration: 0.7 }}
             variants={{
               normal: {
                 pathLength: 1,
@@ -105,7 +105,7 @@ const EarthIcon = forwardRef<EarthIconHandle, EarthIconProps>(
           <motion.path
             animate={controls}
             d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"
-            transition={{ duration: 0.7, delay: 0.5, opacity: { delay: 0.5 } }}
+            transition={{ duration: 0.7 }}
             variants={{
               normal: {
                 pathLength: 1,
