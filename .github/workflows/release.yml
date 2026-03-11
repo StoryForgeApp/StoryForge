@@ -7,6 +7,10 @@ on:
 
 jobs:
   build-and-release:
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       matrix:
         os: [
