@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { CircleFadingPlusIcon, FolderIcon, GlobeIcon, NewspaperIcon } from "lucide-react";
+import { NewspaperIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/mainview/components/ui/dropdown-menu";
+import { CircleFadingPlusDrawIcon } from "@/mainview/components/ui/icons/circle-fading-plus-draw";
 import { EarthIcon } from "@/mainview/components/ui/icons/earth";
+import { GlobeIcon } from "@/mainview/components/ui/icons/globe";
 import { HomeIcon } from "@/mainview/components/ui/icons/home";
 import { MapPinIcon } from "@/mainview/components/ui/icons/map-pin";
 import { SettingsIcon } from "@/mainview/components/ui/icons/settings";
@@ -30,6 +32,7 @@ import { TooltipProvider } from "@/mainview/components/ui/tooltip";
 import { useInstallations } from "@/mainview/hooks/use-installations";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
 import { useServers } from "@/mainview/hooks/use-servers";
+import { OpenFolderIcon } from "../components/ui/icons/open-folder";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { data: installedVersions } = useInstalledVersions();
@@ -88,7 +91,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                       />
                     }
                   >
-                    <FolderIcon />
+                    <OpenFolderIcon />
                     Installations
                   </SidebarMenuButton>
                   <SidebarMenuBadge className="text-muted-foreground text-xs">
@@ -160,7 +163,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                       />
                     }
                   >
-                    <CircleFadingPlusIcon />
+                    <CircleFadingPlusDrawIcon />
                     Versions
                   </SidebarMenuButton>
                   <SidebarMenuBadge className="text-muted-foreground text-xs">
