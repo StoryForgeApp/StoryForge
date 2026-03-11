@@ -33,16 +33,11 @@ import {
 } from "@/mainview/components/ui/tooltip";
 import { useInstallations } from "@/mainview/hooks/use-installations";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 
 export const Route = createFileRoute("/installations/")({
   component: RouteComponent,
 });
-
-interface DownloadingVersion {
-  progress: number;
-  speed: number; // in bits per second
-  version: string;
-}
 
 const variations = {
   hidden: { opacity: 0, y: -10 },
@@ -88,7 +83,10 @@ function RouteComponent() {
   const navigate = useNavigate();
   const { electroview } = Route.useRouteContext();
   const deleteTimeoutRef = useRef<NodeJS.Timeout>(null);
-  const [downloadingVersions, setDownloadingVersions] = useState<DownloadingVersion[]>([]);
+  const downloadingVersions = useDownloadsStore((state) => state.downloadingVersions);
+  const addDownloadingVersion = useDownloadsStore((state) => state.addDownloadingVersion);
+  const updateDownloadingVersion = useDownloadsStore((state) => state.updateDownloadingVersion);
+  const removeDownloadingVersion = useDownloadsStore((state) => state.removeDownloadingVersion);
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: installations, refetch } = useInstallations();
@@ -151,11 +149,15 @@ function RouteComponent() {
     mutationFn: async (version: string) => electroview.rpc?.request.downloadVersion({ version }),
     onError: (_, version) => {
       // Remove from downloading list on error (including cancellation)
-      setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+      removeDownloadingVersion(version);
     },
     onSuccess: (_, version) => {
       // Add to downloading list
-      setDownloadingVersions((prev) => [...prev, { progress: 0, speed: 0, version }]);
+      addDownloadingVersion({
+        version,
+        progress: 0,
+        speed: 0,
+      });
 
       // Create listener functions that we can reference for cleanup
       const handleProgress = ({
@@ -168,9 +170,7 @@ function RouteComponent() {
         id: string;
       }) => {
         if (id === version) {
-          setDownloadingVersions((prev) =>
-            prev.map((v) => (v.version === version ? { ...v, progress, speed } : v)),
-          );
+          updateDownloadingVersion(version, progress, speed);
         }
       };
 
@@ -199,7 +199,7 @@ function RouteComponent() {
 
         // Remove listeners when download ends (completed, error, or cancelled)
         if (status === "completed" || status === "error" || status === "cancelled") {
-          setDownloadingVersions((prev) => prev.filter((v) => v.version !== version));
+          removeDownloadingVersion(version);
           electroview.rpc?.removeMessageListener("downloadProgress", handleProgress);
           electroview.rpc?.removeMessageListener("downloadStatus", handleStatus);
         }
