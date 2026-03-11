@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { FolderIcon, PackageSearchIcon } from "lucide-react";
+import { PackageSearchIcon } from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useRef, useState } from "react";
@@ -15,6 +15,7 @@ import { Group } from "@/mainview/components/ui/group";
 import { ChevronsUpDownIcon } from "@/mainview/components/ui/icons/chevrons-up-down";
 import { CloudDownloadIcon } from "@/mainview/components/ui/icons/cloud-download";
 import { DeleteIcon } from "@/mainview/components/ui/icons/delete";
+import { OpenFolderIcon } from "@/mainview/components/ui/icons/open-folder";
 import { PlayIcon } from "@/mainview/components/ui/icons/play";
 import { PlusIcon } from "@/mainview/components/ui/icons/plus";
 import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
@@ -472,7 +473,7 @@ function RouteComponent() {
                             />
                           }
                         >
-                          <FolderIcon className="size-3.5" />
+                          <OpenFolderIcon className="size-3.5" />
                         </TooltipTrigger>
                         <TooltipTrigger
                           handle={tooltipHandle}
