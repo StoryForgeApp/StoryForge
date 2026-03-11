@@ -19,6 +19,9 @@ jobs:
           ]
     runs-on: ${{ matrix.os }}
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -57,5 +60,3 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        permissions:
-          contents: write
