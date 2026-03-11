@@ -4,6 +4,7 @@ import { ModController } from "@/bun/controllers/mods";
 import { ServerController } from "@/bun/controllers/servers";
 import { UtilsController } from "@/bun/controllers/utils";
 import { VersionController } from "@/bun/controllers/versions";
+import { WorldsController } from "@/bun/controllers/worlds";
 
 // src/shared/types.ts
 export type StoryForgeRPCType = {
@@ -13,7 +14,8 @@ export type StoryForgeRPCType = {
       InstallationController["requests"] &
       ModController["requests"] &
       VersionController["requests"] &
-      UtilsController["requests"] & {
+      UtilsController["requests"] &
+      WorldsController["requests"] & {
         lastRoute: {
           params: undefined;
           response: string;
