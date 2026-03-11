@@ -1,5 +1,5 @@
 import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ZapIcon } from "lucide-react";
 import { Variants } from "motion/react";
@@ -28,6 +28,9 @@ const variations = {
 
 function RouteComponent() {
   const { data: servers } = useServers();
+  const { streamMode } = useRouteContext({
+    from: "__root__",
+  });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -124,7 +127,7 @@ function RouteComponent() {
                   <div className="flex h-full flex-col justify-between">
                     <div className="flex h-full flex-col">
                       <p className="truncate">{s.name}</p>
-                      <p className="text-xs font-thin">{s.ip}</p>
+                      <p className="text-xs font-thin">{streamMode ? "···.···.···.···" : s.ip}</p>
                     </div>
                     <div className="flex gap-2">
                       <Badge className="text-muted-foreground font-thin" variant="outline">

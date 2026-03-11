@@ -18,7 +18,7 @@ export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
   component: RootLayout,
-  beforeLoad: ({ location }) => {
+  beforeLoad: async ({ location, context }) => {
     const lastVisited = localStorage.getItem("lastVisited");
     const alreadyVisited = sessionStorage.getItem("alreadyVisited");
     if (!alreadyVisited) {
@@ -27,5 +27,10 @@ export const Route = createRootRouteWithContext<{
         throw redirect({ to: lastVisited });
       }
     }
+    const streamMode = await context.electroview.rpc?.request.getStreamMode();
+
+    return {
+      streamMode,
+    };
   },
 });
