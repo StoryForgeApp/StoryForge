@@ -33,11 +33,13 @@ import { useInstallations } from "@/mainview/hooks/use-installations";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
 import { useServers } from "@/mainview/hooks/use-servers";
 import { OpenFolderIcon } from "../components/ui/icons/open-folder";
+import { useWorlds } from "../hooks/use-worlds";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { data: installedVersions } = useInstalledVersions();
   const { data: installations } = useInstallations();
   const { data: servers } = useServers();
+  const { data: worlds } = useWorlds();
   return (
     <TooltipProvider>
       <SidebarProvider>
@@ -112,6 +114,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                       >
                         <EarthIcon />
                         Worlds
+                        <SidebarMenuBadge className="text-muted-foreground text-xs">
+                          {worlds?.length ?? 0}
+                        </SidebarMenuBadge>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   </SidebarMenuSub>
