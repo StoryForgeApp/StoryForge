@@ -7,6 +7,7 @@ import { modController } from "./controllers/mods";
 import { serverController } from "./controllers/servers";
 import { utilsController } from "./controllers/utils";
 import { versionController } from "./controllers/versions";
+import { worldsController } from "./controllers/worlds";
 import { getPlatform } from "./utils";
 
 const DEV_SERVER_PORT = 5173;
@@ -38,6 +39,7 @@ const myWebviewRPC = BrowserView.defineRPC<StoryForgeRPCType>({
       ...installationController,
       ...modController,
       ...utilsController,
+      ...worldsController,
     },
   },
   maxRequestTime: 30000,
