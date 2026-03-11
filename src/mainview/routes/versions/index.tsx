@@ -10,7 +10,7 @@ import { ComboboxTrigger } from "@/mainview/components/ui/combobox";
 import { Group } from "@/mainview/components/ui/group";
 import { CloudDownloadIcon } from "@/mainview/components/ui/icons/cloud-download";
 import { DeleteIcon } from "@/mainview/components/ui/icons/delete";
-import { FolderOpenIcon } from "@/mainview/components/ui/icons/folder-open";
+import { OpenFolderIcon } from "@/mainview/components/ui/icons/open-folder";
 import { PlusIcon } from "@/mainview/components/ui/icons/plus";
 import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
 import { XIcon } from "@/mainview/components/ui/icons/x";
@@ -280,7 +280,7 @@ function RouteComponent() {
                             />
                           }
                         >
-                          <FolderOpenIcon className="size-3.5" />
+                          <OpenFolderIcon className="size-3.5" />
                         </TooltipTrigger>
                         <TooltipTrigger
                           handle={tooltipHandle}
