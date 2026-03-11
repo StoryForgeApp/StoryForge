@@ -7,10 +7,6 @@ on:
 
 jobs:
   build-and-release:
-    defaults:
-      run:
-        shell: bash
-
     strategy:
       matrix:
         os: [
@@ -41,19 +37,10 @@ jobs:
       - name: Determine build environment
         id: build-env
         run: |
-          if [[ "${{ github.ref_name }}" == *"-canary"* ]]; then
-            echo "env=canary" >> $GITHUB_OUTPUT
-          else
-            echo "env=stable" >> $GITHUB_OUTPUT
-          fi
+          echo "env=${{ contains(github.ref_name, '-canary') && 'canary' || 'stable' }}" >> $GITHUB_OUTPUT
 
       - name: Build app
-        run: |
-          if [ "${{ steps.build-env.outputs.env }}" = "canary" ]; then
-            bun run build:canary
-          else
-            bun run build:stable
-          fi
+        run: bun run build:${{ steps.build-env.outputs.env == 'canary' && 'canary' || 'stable' }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
