@@ -48,7 +48,7 @@ export function VersionCombobox({
             className="rounded-md before:rounded-[calc(var(--radius-md)-1px)]"
             placeholder="Search versions..."
             showTrigger={false}
-            startAddon={<SearchIcon />}
+            startAddon={<SearchIcon size={16} />}
           />
           <div className="flex items-center justify-between gap-2">
             <Label className="text-sm font-thin">
