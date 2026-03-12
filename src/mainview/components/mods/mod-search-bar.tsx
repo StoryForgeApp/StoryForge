@@ -19,7 +19,7 @@ export function ModSearchBar({ search, onSearchChange, searchRef }: ModSearchBar
         value={search}
       />
       <InputGroupAddon>
-        <SearchIcon />
+        <SearchIcon size={16} />
       </InputGroupAddon>
       <InputGroupAddon align="inline-end">
         <KbdGroup>
