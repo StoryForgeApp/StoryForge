@@ -94,7 +94,7 @@ function RouteComponent() {
             value={search}
           />
           <InputGroupAddon>
-            <SearchIcon />
+            <SearchIcon size={16} />
           </InputGroupAddon>
           <InputGroupAddon align="inline-end">
             <KbdGroup>
@@ -151,7 +151,7 @@ function RouteComponent() {
                         <ZapIcon /> {ps.gameVersion}
                       </Badge>
                       <Badge className="text-muted-foreground font-thin" variant="outline">
-                        <UsersIcon /> {ps.players}/{ps.maxPlayers}
+                        <UsersIcon size={12} /> {ps.players}/{ps.maxPlayers}
                       </Badge>
                       <Badge className="text-muted-foreground font-thin" variant="outline">
                         <Package2Icon /> {ps.modCount}
