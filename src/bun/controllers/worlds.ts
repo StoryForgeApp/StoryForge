@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { readdir, stat, access, readFile } from "fs/promises";
+import { readdir, stat, access, readFile, exists, rm } from "fs/promises";
 import { join, basename } from "path";
 import * as v from "valibot";
 import { InferRPCSchema } from "@/shared/helper";
@@ -38,12 +38,22 @@ export interface WorldInfo {
   installation: {
     path: string;
     name: string;
+    version: string;
   };
+  size: number;
   error?: string;
   data?: Omit<GameDataType, "worldConfigBytes" | "modData">;
 }
 
 export const worldsController = {
+  deleteWorld: async ({ path }: { path: string }): Promise<boolean> => {
+    if (await exists(path)) {
+      await rm(path, { force: true, recursive: true });
+      console.log(`[worlds.ts] Deleted world file: ${path}`);
+      return true;
+    }
+    return false;
+  },
   getWorlds: async (): Promise<WorldInfo[]> => {
     const installationPath = await getInstallationsPath();
     const installations = await readdir(installationPath);
@@ -78,21 +88,7 @@ export const worldsController = {
         const dbPath = join(worldsPath, world);
         const worldName = basename(world, ".vcdbs");
 
-        // Check if file exists
-        const exists = await fileExists(dbPath);
-        if (!exists) {
-          worlds.push({
-            path: dbPath,
-            installation: {
-              name: installationConfigJson.name as string,
-              path: join(installationPath, installation),
-            },
-            name: worldName,
-            isLocked: true,
-            error: "File not found",
-          });
-          continue;
-        }
+        const worldStat = await stat(dbPath);
 
         // Check if it's actually an SQLite file
         const isValidSQLite = await isSQLiteFile(dbPath);
@@ -102,7 +98,9 @@ export const worldsController = {
             installation: {
               name: installationConfigJson.name as string,
               path: join(installationPath, installation),
+              version: installationConfigJson.version as string,
             },
+            size: worldStat.size,
             name: worldName,
             isLocked: true,
             error: "Not a valid SQLite database",
@@ -127,7 +125,9 @@ export const worldsController = {
             installation: {
               name: installationConfigJson.name as string,
               path: join(installationPath, installation),
+              version: installationConfigJson.version as string,
             },
+            size: worldStat.size,
             name: worldName,
             isLocked: true,
             error: `Cannot open database: ${err.message}`,
@@ -144,7 +144,9 @@ export const worldsController = {
               installation: {
                 name: installationConfigJson.name as string,
                 path: join(installationPath, installation),
+                version: installationConfigJson.version as string,
               },
+              size: worldStat.size,
               name: worldName,
               isLocked: true,
               error: "No gamedata found",
@@ -167,7 +169,9 @@ export const worldsController = {
             installation: {
               name: installationConfigJson.name as string,
               path: join(installationPath, installation),
+              version: installationConfigJson.version as string,
             },
+            size: worldStat.size,
             name: parsed.worldName,
             isLocked: hasWal || hasShm,
             data: parsed,
@@ -180,7 +184,9 @@ export const worldsController = {
             installation: {
               name: installationConfigJson.name as string,
               path: join(installationPath, installation),
+              version: installationConfigJson.version as string,
             },
+            size: worldStat.size,
             name: worldName,
             isLocked: true,
             error: `Query failed: ${err.message}`,
