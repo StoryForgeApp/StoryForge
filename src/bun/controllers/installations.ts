@@ -142,7 +142,7 @@ export const installationController = {
   openInstallationFolder: async ({ path }: { path: string }): Promise<void> => {
     Utils.openPath(path);
   },
-  playWithInstallation: async ({ path }: { path: string }) => {
+  playWithInstallation: async ({ path, world }: { path: string; world?: string }) => {
     const configPath = join(path, "installation.json");
     if (!(await exists(configPath))) {
       console.error(`[installations.ts] Installation config not found: ${configPath}`);
@@ -178,6 +178,7 @@ export const installationController = {
       execPath,
       "--dataPath",
       path,
+      ...(world ? ["-o", world] : []),
       ...(config.startParams ? config.startParams.split(" ") : []),
     ]);
   },
