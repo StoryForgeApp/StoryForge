@@ -1,10 +1,11 @@
 import type { ElectrobunConfig } from "electrobun";
+import packageJson from "./package.json";
 
 export default {
   app: {
     identifier: "lovelesscodes.storyforge.dev",
     name: "Story Forge",
-    version: "0.0.1",
+    version: packageJson.version,
     description: "A VintageStory mod manager built with Bun and React",
     urlSchemes: ["storyforge", "storyforge-dev"],
   },
@@ -12,24 +13,22 @@ export default {
     exitOnLastWindowClosed: true,
   },
   release: {
-    baseUrl: "https://github.com/StoryForgeApp/storyforge/releases/latest/download"
+    baseUrl: "https://github.com/StoryForgeApp/storyforge/releases/latest/download",
   },
   build: {
-    // Vite builds to dist/, we copy from there
     copy: {
       "dist/assets": "views/mainview/assets",
       "dist/index.html": "views/mainview/index.html",
     },
     linux: {
-      bundleCEF: process.env.NODE_ENV === "production",
+      bundleCEF: false,
       icon: "icon.iconset/icon_512x512.png",
     },
     mac: {
       bundleCEF: false,
       icons: "icon.iconset",
     },
-    // Ignore Vite output in watch mode — HMR handles view rebuilds separately
-    // @ts-expect-error ElectrobunConfig doesn't have watchIgnore yet, but it should be added to avoid unnecessary restarts during development
+    // @ts-expect-error - watchIgnore is not in the type definition but is in the docs
     watchIgnore: ["dist/**"],
     win: {
       bundleCEF: false,
