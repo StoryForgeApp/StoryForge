@@ -1,6 +1,6 @@
 {
   "name": "storyforge-electrobun",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Storyforge written in Electrobun with React, Tailwind CSS, and Vite HMR",
   "scripts": {
     "build:canary": "vite build && electrobun build --env=canary",
