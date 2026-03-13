@@ -7,6 +7,12 @@ import { UtilsController } from "@/bun/controllers/utils";
 import { VersionController } from "@/bun/controllers/versions";
 import { WorldsController } from "@/bun/controllers/worlds";
 
+type MessagesType = ServerController["messages"] &
+  ModController["messages"] &
+  VersionController["messages"] &
+  LogController["messages"] &
+  UtilsController["messages"];
+
 // src/shared/types.ts
 export type StoryForgeRPCType = {
   // functions that execute in the main process
@@ -27,18 +33,10 @@ export type StoryForgeRPCType = {
           response: boolean;
         };
       };
-    messages: ServerController["messages"] &
-      ModController["messages"] &
-      VersionController["messages"] &
-      LogController["messages"] &
-      UtilsController["messages"];
+    messages: MessagesType;
   };
   // functions that execute in the browser context
   webview: RPCSchema<{
-    messages: VersionController["messages"] &
-      ModController["messages"] &
-      InstallationController["messages"] &
-      LogController["messages"] &
-      UtilsController["messages"];
+    messages: MessagesType;
   }>;
 };
