@@ -18,6 +18,7 @@ import { Route as InstallationsIndexRouteImport } from './routes/installations/i
 import { Route as ServersPublicRouteImport } from './routes/servers/public'
 import { Route as InstallationsWorldsRouteImport } from './routes/installations/worlds'
 import { Route as InstallationsModsRouteImport } from './routes/installations/mods'
+import { Route as InstallationsLogsRouteImport } from './routes/installations/logs'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,9 +65,15 @@ const InstallationsModsRoute = InstallationsModsRouteImport.update({
   path: '/installations/mods',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstallationsLogsRoute = InstallationsLogsRouteImport.update({
+  id: '/installations/logs',
+  path: '/installations/logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/installations/logs': typeof InstallationsLogsRoute
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
   '/servers/public': typeof ServersPublicRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/installations/logs': typeof InstallationsLogsRoute
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
   '/servers/public': typeof ServersPublicRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/installations/logs': typeof InstallationsLogsRoute
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
   '/servers/public': typeof ServersPublicRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/installations/logs'
     | '/installations/mods'
     | '/installations/worlds'
     | '/servers/public'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/installations/logs'
     | '/installations/mods'
     | '/installations/worlds'
     | '/servers/public'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/installations/logs'
     | '/installations/mods'
     | '/installations/worlds'
     | '/servers/public'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  InstallationsLogsRoute: typeof InstallationsLogsRoute
   InstallationsModsRoute: typeof InstallationsModsRoute
   InstallationsWorldsRoute: typeof InstallationsWorldsRoute
   ServersPublicRoute: typeof ServersPublicRoute
@@ -212,11 +225,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstallationsModsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/installations/logs': {
+      id: '/installations/logs'
+      path: '/installations/logs'
+      fullPath: '/installations/logs'
+      preLoaderRoute: typeof InstallationsLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  InstallationsLogsRoute: InstallationsLogsRoute,
   InstallationsModsRoute: InstallationsModsRoute,
   InstallationsWorldsRoute: InstallationsWorldsRoute,
   ServersPublicRoute: ServersPublicRoute,

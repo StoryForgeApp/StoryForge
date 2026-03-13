@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { PackageSearchIcon } from "lucide-react";
+import { PackageSearchIcon, StickyNoteIcon } from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useRef } from "react";
@@ -358,6 +358,24 @@ function RouteComponent() {
                           }
                         >
                           <PackageSearchIcon className="size-3.5" />
+                        </TooltipTrigger>
+                        <TooltipTrigger
+                          handle={tooltipHandle}
+                          payload={() => "Read logs"}
+                          render={
+                            <Button
+                              onClick={() =>
+                                navigate({
+                                  to: "/installations/logs",
+                                  search: { path: world.installation?.path },
+                                })
+                              }
+                              size="icon-sm"
+                              variant="outline"
+                            />
+                          }
+                        >
+                          <StickyNoteIcon className="size-3.5" />
                         </TooltipTrigger>
                         <TooltipTrigger
                           handle={tooltipHandle}
