@@ -1,5 +1,6 @@
 import type { RPCSchema } from "electrobun";
 import { InstallationController } from "@/bun/controllers/installations";
+import { LogController } from "@/bun/controllers/logs";
 import { ModController } from "@/bun/controllers/mods";
 import { ServerController } from "@/bun/controllers/servers";
 import { UtilsController } from "@/bun/controllers/utils";
@@ -15,7 +16,8 @@ export type StoryForgeRPCType = {
       ModController["requests"] &
       VersionController["requests"] &
       UtilsController["requests"] &
-      WorldsController["requests"] & {
+      WorldsController["requests"] &
+      LogController["requests"] & {
         lastRoute: {
           params: undefined;
           response: string;
@@ -27,12 +29,14 @@ export type StoryForgeRPCType = {
       };
     messages: ServerController["messages"] &
       ModController["messages"] &
-      VersionController["messages"];
+      VersionController["messages"] &
+      LogController["messages"];
   };
   // functions that execute in the browser context
   webview: RPCSchema<{
     messages: VersionController["messages"] &
       ModController["messages"] &
-      InstallationController["messages"];
+      InstallationController["messages"] &
+      LogController["messages"];
   }>;
 };

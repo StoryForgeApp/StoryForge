@@ -3,6 +3,7 @@ import { join } from "path";
 import { BrowserView, BrowserWindow, Screen, Session, Updater, Utils } from "electrobun/bun";
 import type { StoryForgeRPCType } from "@/shared/rpc";
 import { installationController } from "./controllers/installations";
+import { logController } from "./controllers/logs";
 import { modController } from "./controllers/mods";
 import { serverController } from "./controllers/servers";
 import { utilsController } from "./controllers/utils";
@@ -40,6 +41,7 @@ const myWebviewRPC = BrowserView.defineRPC<StoryForgeRPCType>({
       ...modController,
       ...utilsController,
       ...worldsController,
+      ...logController,
     },
   },
   maxRequestTime: 30000,
