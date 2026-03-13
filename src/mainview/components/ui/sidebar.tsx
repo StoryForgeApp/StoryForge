@@ -191,7 +191,7 @@ function SidebarProvider({
           </div>
         </div>
         <div
-          className={cn("flex w-full min-h-0 h-full!", className)}
+          className={cn("flex min-h-0 min-w-0 size-full!", className)}
           data-slot="sidebar-wrapper"
           style={
             {
@@ -361,7 +361,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
       className={cn(
-        "bg-background md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm relative flex h-full w-full flex-col",
+        "bg-background md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm relative flex size-full flex-col overflow-hidden",
         className,
       )}
       data-slot="sidebar-inset"
