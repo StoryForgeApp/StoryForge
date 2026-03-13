@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": ["src/mainview/routeTree.gen.ts", "electrobun.config.ts"],
+  "ignorePatterns": ["src/mainview/routeTree.gen.ts"],
   "sortImports": {
     "newlinesBetween": false
   },
