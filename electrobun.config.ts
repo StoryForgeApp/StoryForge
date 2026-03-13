@@ -13,8 +13,7 @@ export default {
     exitOnLastWindowClosed: true,
   },
   release: {
-    baseUrl:
-      "https://github.com/StoryForgeApp/storyforge/releases/latest/download",
+    baseUrl: "https://github.com/StoryForgeApp/storyforge/releases/latest/download",
   },
   build: {
     copy: {
