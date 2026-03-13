@@ -1,7 +1,9 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2Icon } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { getPlatform } from "@/lib/utils";
@@ -25,6 +27,7 @@ import {
 import { Skeleton } from "@/mainview/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/mainview/components/ui/tooltip";
 import { useIsMobile } from "@/mainview/hooks/use-mobile";
+import { DownloadIcon } from "./icons/download";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -76,6 +79,7 @@ function SidebarProvider({
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen);
+  const [canApply, setCanApply] = React.useState(false);
   const open = openProp ?? _open;
   const setOpen = React.useCallback(
     async (value: boolean | ((value: boolean) => boolean)) => {
@@ -136,6 +140,36 @@ function SidebarProvider({
 
   const platform = getPlatform();
 
+  const { data: version } = useQuery({
+    staleTime: 60_000,
+    queryKey: ["version"],
+    queryFn: () => electroview.rpc?.request.getVersion(),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
+  });
+
+  const { data: availableUpdate } = useQuery({
+    queryFn: () => electroview.rpc?.request.getUpdate(),
+    queryKey: ["availableUpdate"],
+    staleTime: 60_000,
+  });
+
+  const {
+    mutate: downloadUpdate,
+    isPending: isDownloading,
+    error,
+  } = useMutation({
+    mutationFn: async () => electroview.rpc?.request.downloadUpdate(),
+    onMutate: () =>
+      electroview.rpc?.addMessageListener("updateFinished", ({ done }) => setCanApply(done)),
+    onSettled: () => electroview.rpc?.removeMessageListener("updateFinished", () => {}),
+  });
+
+  const { mutate: applyUpdate, isPending: isApplying } = useMutation({
+    mutationFn: async () => electroview.rpc?.request.applyUpdate(),
+  });
+
   return (
     <SidebarContext.Provider value={contextValue}>
       <div className="group/sidebar-wrapper bg-sidebar border-border grid h-screen! w-full grid-rows-[min-content_auto] overflow-hidden rounded-xl border transition-all duration-200 ease-linear">
@@ -178,7 +212,9 @@ function SidebarProvider({
           </div>
           <div className="order-2 flex items-center justify-center gap-2">
             <LogoFull monoChrome className="h-8 w-8" />
-            <p className="text-center font-bold select-none">Story Forge</p>
+            <p className="text-center font-bold select-none">
+              Story Forge <span className="text-muted-foreground text-xs">{version}</span>
+            </p>
           </div>
           <div
             className={cn(
@@ -186,6 +222,31 @@ function SidebarProvider({
               platform === "mac" ? "order-3 justify-end" : "order-1",
             )}
           >
+            {canApply && (
+              <Button size="sm" variant="success-outline" onClick={() => applyUpdate()}>
+                {isApplying ? (
+                  <Loader2Icon className="size-4 animate-spin" />
+                ) : (
+                  <DownloadIcon className="size-4" />
+                )}
+                {isApplying ? "Applying..." : "Apply update"}
+              </Button>
+            )}
+            {availableUpdate && !canApply && (
+              <Button
+                size="sm"
+                variant="info-outline"
+                disabled={isDownloading}
+                onClick={() => downloadUpdate()}
+              >
+                {isDownloading ? (
+                  <Loader2Icon className="size-4 animate-spin" />
+                ) : (
+                  <DownloadIcon className="size-4" />
+                )}
+                {isDownloading ? "Downloading..." : error ? "Retry" : "Download update"}
+              </Button>
+            )}
             <ThemeToggle />
             <SidebarTrigger />
           </div>
