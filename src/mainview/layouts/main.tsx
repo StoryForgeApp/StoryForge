@@ -51,9 +51,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   <SidebarMenuButton render={<DropdownMenuTrigger />}>
                     <UserIcon />
                     Account(s)
-                    <SidebarMenuBadge className="text-muted-foreground text-xs">
-                      {">"}
-                    </SidebarMenuBadge>
                   </SidebarMenuButton>
                   <DropdownMenuContent align="start" side="right">
                     <div className="p-2">
