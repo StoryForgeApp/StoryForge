@@ -21,18 +21,26 @@ export default {
       "dist/index.html": "views/mainview/index.html",
     },
     linux: {
-      bundleCEF: false,
+      bundleCEF: true,
+      defaultRenderer: "cef",
       icon: "icon.iconset/icon_512x512.png",
+      bundleWGPU: false,
     },
     mac: {
       bundleCEF: false,
       icons: "icon.iconset",
+      notarize: false,
+      codesign: false,
+      defaultRenderer: "native",
+      bundleWGPU: false,
     },
     // @ts-expect-error - watchIgnore is not in the type definition but is in the docs
     watchIgnore: ["dist/**"],
     win: {
       bundleCEF: false,
       icon: "assets/icon_512x512.ico",
+      defaultRenderer: "native",
+      bundleWGPU: false,
     },
   },
 } satisfies ElectrobunConfig;
