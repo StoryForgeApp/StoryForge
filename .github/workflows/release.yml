@@ -6,11 +6,11 @@ on:
       - "v*"
 
 jobs:
-  build-and-release:
+  build:
     strategy:
       matrix:
         os: [
-            macos-15, # M1/M2 Apple Silicon runner
+            macos-14, # M1/M2 Apple Silicon runner
             macos-26-intel, # Intel-based macOS runner
             ubuntu-latest, # Ubuntu 24.04 x64 runner
             ubuntu-24.04-arm, # Ubuntu 24.04 ARM runner
@@ -18,9 +18,6 @@ jobs:
             windows-11-arm, # Windows 11 ARM runner
           ]
     runs-on: ${{ matrix.os }}
-
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout code
@@ -42,12 +39,33 @@ jobs:
       - name: Build app
         run: bun run build:${{ steps.build-env.outputs.env == 'canary' && 'canary' || 'stable' }}
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: binary-${{ matrix.os }}
+          path: artifacts/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          path: combined-artifacts
+          merge-multiple: true
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*
+          files: combined-artifacts/*
           draft: true
-          prerelease: ${{ steps.build-env.outputs.env == 'canary' }}
+          prerelease: ${{ contains(github.ref_name, '-canary') }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
