@@ -9,14 +9,13 @@ jobs:
   build-and-release:
     strategy:
       matrix:
-        os:
-          [
-            macos-latest,
-            macos-26-intel,
-            ubuntu-latest,
-            ubuntu-24.04-arm,
-            windows-latest,
-            windows-11-arm,
+        os: [
+            macos-15, # M1/M2 Apple Silicon runner
+            macos-26-intel, # Intel-based macOS runner
+            ubuntu-latest, # Ubuntu 24.04 x64 runner
+            ubuntu-24.04-arm, # Ubuntu 24.04 ARM runner
+            windows-latest, # Windows 2022 x64 runner
+            windows-11-arm, # Windows 11 ARM runner
           ]
     runs-on: ${{ matrix.os }}
 
