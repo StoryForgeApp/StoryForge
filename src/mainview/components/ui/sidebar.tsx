@@ -232,7 +232,7 @@ function SidebarProvider({
                 {isApplying ? "Applying..." : "Apply update"}
               </Button>
             )}
-            {availableUpdate && !canApply && (
+            {availableUpdate?.updateAvailable && !canApply && (
               <Button
                 size="sm"
                 variant="info-outline"
