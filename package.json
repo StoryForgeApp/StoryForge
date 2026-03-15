@@ -13,7 +13,7 @@
     "hmr": "vite --port 5173",
     "lint": "bun run --parallel \"oxlint\" \"oxfmt --check\"",
     "prepare": "husky",
-    "release": "bumpp",
+    "release": "bumpp --commit --tag --push",
     "start": "vite build && electrobun dev"
   },
   "dependencies": {
