@@ -1,7 +1,5 @@
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
-import { hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
 import { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -60,8 +58,6 @@ const router = createRouter({
             name: "Router",
             render: <TanStackRouterDevtoolsPanel router={router} />,
           },
-          formDevtoolsPlugin(),
-          hotkeysDevtoolsPlugin(),
         ]}
       />
     </PersistQueryClientProvider>
