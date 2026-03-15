@@ -1,4 +1,5 @@
-import "@/mainview/index.css";
+// @ts-expect-error - .css files are not typed
+import "../index.css";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet, redirect } from "@tanstack/react-router";
 import { domAnimation, LazyMotion } from "motion/react";
