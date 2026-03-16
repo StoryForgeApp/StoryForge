@@ -174,41 +174,33 @@ function SidebarProvider({
     <SidebarContext.Provider value={contextValue}>
       <div className="group/sidebar-wrapper bg-sidebar border-border grid h-screen! w-full grid-rows-[min-content_auto] overflow-hidden rounded-xl border transition-all duration-200 ease-linear">
         <div className="electrobun-webkit-app-region-drag grid w-full shrink-0 cursor-grab grid-cols-3 items-center justify-between p-2 active:cursor-grabbing">
-          <div
-            className={
-              platform === "mac"
-                ? "electrobun-webkit-app-region-no-drag order-1 flex cursor-default gap-2"
-                : "order-3"
-            }
-          >
-            {platform !== "mac" && (
-              <Group>
-                <Button
-                  variant="ghost"
-                  className="hover:text-green-700 dark:text-green-300"
-                  size="icon-sm"
-                  onClick={() => electroview.rpc?.request.maximize()}
-                >
-                  <MaximizeIcon className="size-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="hover:text-yellow-700 dark:text-yellow-300"
-                  size="icon-sm"
-                  onClick={() => electroview.rpc?.request.minimize()}
-                >
-                  <MinimizeIcon className="size-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="hover:text-destructive"
-                  size="icon-sm"
-                  onClick={() => electroview.rpc?.request.quit()}
-                >
-                  <XIcon className="size-4" />
-                </Button>
-              </Group>
-            )}
+          <div className={platform === "mac" ? "order-1 flex gap-2" : "order-3"}>
+            <Group className={cn(platform === "mac" ? "flex-row-reverse" : "", "w-fit")}>
+              <Button
+                variant="ghost"
+                className="hover:text-yellow-700 dark:hover:text-yellow-300"
+                size="icon-sm"
+                onClick={() => electroview.rpc?.request.minimize()}
+              >
+                <MinimizeIcon className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                className="hover:text-green-700 dark:hover:text-green-300"
+                size="icon-sm"
+                onClick={() => electroview.rpc?.request.maximize()}
+              >
+                <MaximizeIcon className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                className="hover:text-destructive"
+                size="icon-sm"
+                onClick={() => electroview.rpc?.request.quit()}
+              >
+                <XIcon className="size-4" />
+              </Button>
+            </Group>
           </div>
           <div className="order-2 flex items-center justify-center gap-2">
             <LogoFull monoChrome className="h-8 w-8" />
