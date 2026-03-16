@@ -9,13 +9,11 @@ import { serverController } from "./controllers/servers";
 import { utilsController } from "./controllers/utils";
 import { versionController } from "./controllers/versions";
 import { worldsController } from "./controllers/worlds";
-import { getPlatform } from "./utils";
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
 const windowConfig = join(Utils.paths.config, "window.json");
-const platform = getPlatform();
 const session = Session.defaultSession;
 
 function getDisplayAtCursor() {
@@ -98,10 +96,9 @@ export const mainWindow = new BrowserWindow({
   partition: session.partition,
   rpc: myWebviewRPC,
   title: "Story Forge",
-  titleBarStyle: "hiddenInset",
+  titleBarStyle: "hidden",
   transparent: true,
   url,
-  renderer: platform === "linux" ? "cef" : "native", // CEF on Linux for better font rendering and drag-and-drop support
 });
 
 const handleResizeOrMove = async (e: unknown) => {
