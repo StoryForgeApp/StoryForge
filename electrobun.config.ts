@@ -34,7 +34,6 @@ export default {
       defaultRenderer: "native",
       bundleWGPU: false,
     },
-    // @ts-expect-error - watchIgnore is not in the type definition but is in the docs
     watchIgnore: ["dist/**"],
     win: {
       bundleCEF: false,
