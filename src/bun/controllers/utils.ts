@@ -1,7 +1,13 @@
 import Electrobun, { Utils } from "electrobun";
 import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
-import { getStreamMode } from "../utils";
+import {
+  getConfigFile,
+  getInstallationsPath,
+  getModsCachePath,
+  getStreamMode,
+  getVersionsPath,
+} from "../utils";
 
 export const utilsController = {
   getVersion: async (): Promise<string> => {
@@ -32,6 +38,35 @@ export const utilsController = {
   },
   getStreamMode: async (): Promise<boolean> => {
     return await getStreamMode();
+  },
+  getConfig: async (): Promise<{
+    streamMode: boolean;
+    versionPath: string;
+    installationsPath: string;
+    modsCachePath: string;
+  }> => {
+    const streamMode = await getStreamMode();
+    const versionPath = await getVersionsPath();
+    const installationsPath = await getInstallationsPath();
+    const modsCachePath = await getModsCachePath();
+    return { streamMode, versionPath, installationsPath, modsCachePath };
+  },
+  setConfig: async (config: {
+    streamMode?: boolean;
+    versionPath?: string;
+    installationsPath?: string;
+    modsCachePath?: string;
+  }): Promise<void> => {
+    const configFile = getConfigFile();
+    const exists = await configFile.exists();
+    const configText = exists ? await configFile.text() : "{}";
+    const current = Bun.JSON5.parse(configText.trim() || "{}") as Record<string, unknown>;
+    if (config.streamMode !== undefined) current.streamMode = config.streamMode;
+    if (config.versionPath !== undefined) current.versionPath = config.versionPath;
+    if (config.installationsPath !== undefined)
+      current.installationsPath = config.installationsPath;
+    if (config.modsCachePath !== undefined) current.modsCachePath = config.modsCachePath;
+    await configFile.write(JSON.stringify(current, null, 2));
   },
   openLink: ({ url }: { url: string }): void => {
     Utils.openExternal(url);
