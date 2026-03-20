@@ -24,6 +24,7 @@ import {
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useRPC } from "@/mainview/hooks/use-rpc";
 import { useWorlds } from "@/mainview/hooks/use-worlds";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 
@@ -40,7 +41,7 @@ const tooltipHandle = TooltipCreateHandle<React.ComponentType>();
 
 function RouteComponent() {
   const navigate = useNavigate();
-  const { electroview } = Route.useRouteContext();
+  const { rpc } = useRPC();
   const deleteTimeoutRef = useRef<NodeJS.Timeout>(null);
   const downloadingVersions = useDownloadsStore((state) => state.downloadingVersions);
   const addDownloadingVersion = useDownloadsStore((state) => state.addDownloadingVersion);
@@ -51,26 +52,26 @@ function RouteComponent() {
   const { data: installedVersions, refetch: refetchInstalledVersions } = useInstalledVersions();
 
   const { mutate: cancelDownload } = useMutation({
-    mutationFn: async (version: string) => electroview.rpc?.request.cancelDownload({ version }),
+    mutationFn: async (version: string) => rpc?.request.cancelDownload({ version }),
   });
 
   const { mutate: playWorld } = useMutation({
     mutationFn: async ({ path, world }: { path: string; world: string }) =>
-      electroview.rpc?.request.playWithInstallation({ path, world }),
+      rpc?.request.playWithInstallation({ path, world }),
     onError: (error) => {
       console.error("Failed to play with installation:", error);
     },
   });
 
   const { mutate: openInstallationFolder } = useMutation({
-    mutationFn: async (path: string) => electroview.rpc?.request.openInstallationFolder({ path }),
+    mutationFn: async (path: string) => rpc?.request.openInstallationFolder({ path }),
     onError: (error) => {
       console.error("Failed to open installation folder:", error);
     },
   });
 
   const { mutate: deleteWorld } = useMutation({
-    mutationFn: async (path: string) => electroview.rpc?.request.deleteWorld({ path }),
+    mutationFn: async (path: string) => rpc?.request.deleteWorld({ path }),
     onError: (error) => {
       console.error("Failed to delete world:", error);
     },
@@ -84,7 +85,7 @@ function RouteComponent() {
   });
 
   const { mutate: downloadVersion } = useMutation({
-    mutationFn: async (version: string) => electroview.rpc?.request.downloadVersion({ version }),
+    mutationFn: async (version: string) => rpc?.request.downloadVersion({ version }),
     onError: (_, version) => {
       // Remove from downloading list on error (including cancellation)
       removeDownloadingVersion(version);
@@ -138,14 +139,14 @@ function RouteComponent() {
         // Remove listeners when download ends (completed, error, or cancelled)
         if (status === "completed" || status === "error" || status === "cancelled") {
           removeDownloadingVersion(version);
-          electroview.rpc?.removeMessageListener("downloadProgress", handleProgress);
-          electroview.rpc?.removeMessageListener("downloadStatus", handleStatus);
+          rpc?.removeMessageListener("downloadProgress", handleProgress);
+          rpc?.removeMessageListener("downloadStatus", handleStatus);
         }
       };
 
       // Listen for progress updates
-      electroview.rpc?.addMessageListener("downloadProgress", handleProgress);
-      electroview.rpc?.addMessageListener("downloadStatus", handleStatus);
+      rpc?.addMessageListener("downloadProgress", handleProgress);
+      rpc?.addMessageListener("downloadStatus", handleStatus);
     },
   });
 
