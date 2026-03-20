@@ -1,10 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
+import { useRPC } from "./use-rpc";
 
 export const useAllVersions = () => {
-  const { electroview } = useRouteContext({ from: "__root__" });
+  const { rpc } = useRPC();
   return useQuery({
-    queryFn: () => electroview.rpc?.request.getAllVersions(),
+    queryFn: () => rpc?.request.getAllVersions(),
     queryKey: ["allVersions"],
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
