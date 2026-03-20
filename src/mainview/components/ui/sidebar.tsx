@@ -1,7 +1,6 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
@@ -27,6 +26,7 @@ import {
 import { Skeleton } from "@/mainview/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/mainview/components/ui/tooltip";
 import { useIsMobile } from "@/mainview/hooks/use-mobile";
+import { useRPC } from "@/mainview/hooks/use-rpc";
 import { DownloadIcon } from "./icons/download";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
@@ -70,9 +70,7 @@ function SidebarProvider({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const { electroview } = useRouteContext({
-    from: "__root__",
-  });
+  const { rpc } = useRPC();
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
@@ -143,14 +141,14 @@ function SidebarProvider({
   const { data: version } = useQuery({
     staleTime: 60_000,
     queryKey: ["version"],
-    queryFn: () => electroview.rpc?.request.getVersion(),
+    queryFn: () => rpc?.request.getVersion(),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
   });
 
   const { data: availableUpdate } = useQuery({
-    queryFn: () => electroview.rpc?.request.getUpdate(),
+    queryFn: () => rpc?.request.getUpdate(),
     queryKey: ["availableUpdate"],
     staleTime: 60_000,
   });
@@ -160,14 +158,13 @@ function SidebarProvider({
     isPending: isDownloading,
     error,
   } = useMutation({
-    mutationFn: async () => electroview.rpc?.request.downloadUpdate(),
-    onMutate: () =>
-      electroview.rpc?.addMessageListener("updateFinished", ({ done }) => setCanApply(done)),
-    onSettled: () => electroview.rpc?.removeMessageListener("updateFinished", () => {}),
+    mutationFn: async () => rpc?.request.downloadUpdate(),
+    onMutate: () => rpc?.addMessageListener("updateFinished", ({ done }) => setCanApply(done)),
+    onSettled: () => rpc?.removeMessageListener("updateFinished", () => {}),
   });
 
   const { mutate: applyUpdate, isPending: isApplying } = useMutation({
-    mutationFn: async () => electroview.rpc?.request.applyUpdate(),
+    mutationFn: async () => rpc?.request.applyUpdate(),
   });
 
   return (
@@ -180,7 +177,7 @@ function SidebarProvider({
                 variant="ghost"
                 className="hover:text-yellow-700 dark:hover:text-yellow-300"
                 size="icon-sm"
-                onClick={() => electroview.rpc?.request.minimize()}
+                onClick={() => rpc?.request.minimize()}
               >
                 <MinimizeIcon className="size-4" />
               </Button>
@@ -188,7 +185,7 @@ function SidebarProvider({
                 variant="ghost"
                 className="hover:text-green-700 dark:hover:text-green-300"
                 size="icon-sm"
-                onClick={() => electroview.rpc?.request.maximize()}
+                onClick={() => rpc?.request.maximize()}
               >
                 <MaximizeIcon className="size-4" />
               </Button>
@@ -196,7 +193,7 @@ function SidebarProvider({
                 variant="ghost"
                 className="hover:text-destructive"
                 size="icon-sm"
-                onClick={() => electroview.rpc?.request.quit()}
+                onClick={() => rpc?.request.quit()}
               >
                 <XIcon className="size-4" />
               </Button>
