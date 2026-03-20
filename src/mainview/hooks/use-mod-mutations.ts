@@ -1,6 +1,6 @@
 import { useMutation, type UseMutateAsyncFunction } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import { compareVersions, parseVersion } from "@/lib/utils";
+import { useRPC } from "./use-rpc";
 
 export type RemoveModFunction = UseMutateAsyncFunction<
   { success: boolean; message?: string } | undefined,
@@ -41,11 +41,11 @@ export function useModMutations({
   updateDownloadingMod,
   removeDownloadingMod,
 }: UseModMutationsProps) {
-  const { electroview } = useRouteContext({ from: "__root__" });
+  const { rpc } = useRPC();
 
   const { mutateAsync: removeMod } = useMutation({
     mutationFn: async ({ modzip }: { modzip: string }) =>
-      electroview.rpc?.request.removeMod({ modzip: modzip, path }),
+      rpc?.request.removeMod({ modzip: modzip, path }),
     onSuccess: async (resp) => {
       if (resp?.success) {
         await refetchInstalledMods();
@@ -56,7 +56,7 @@ export function useModMutations({
   });
 
   const { mutate: cancelDownload } = useMutation({
-    mutationFn: async (modid: number) => electroview.rpc?.request.cancelModDownload({ modid }),
+    mutationFn: async (modid: number) => rpc?.request.cancelModDownload({ modid }),
     onSuccess: (_, modid) => {
       removeDownloadingMod(modid);
     },
@@ -64,7 +64,7 @@ export function useModMutations({
 
   const { mutateAsync: downloadMod } = useMutation({
     mutationFn: async ({ url, modid }: { url: string; modid: number }) =>
-      electroview.rpc?.request.installMod({ url, path, modid }),
+      rpc?.request.installMod({ url, path, modid }),
     onError: (_, options) => {
       removeDownloadingMod(options.modid);
     },
@@ -103,19 +103,19 @@ export function useModMutations({
 
         if (status === "completed" || status === "error" || status === "cancelled") {
           removeDownloadingMod(options.modid);
-          electroview.rpc?.removeMessageListener("downloadModProgress", handleProgress);
-          electroview.rpc?.removeMessageListener("downloadModStatus", handleStatus);
+          rpc?.removeMessageListener("downloadModProgress", handleProgress);
+          rpc?.removeMessageListener("downloadModStatus", handleStatus);
         }
       };
 
-      electroview.rpc?.addMessageListener("downloadModProgress", handleProgress);
-      electroview.rpc?.addMessageListener("downloadModStatus", handleStatus);
+      rpc?.addMessageListener("downloadModProgress", handleProgress);
+      rpc?.addMessageListener("downloadModStatus", handleStatus);
     },
   });
 
   const { mutate: downloadLatest } = useMutation({
     mutationFn: async (modid: number) => {
-      const modInfo = await electroview.rpc?.request.fetchModInfo({ modid });
+      const modInfo = await rpc?.request.fetchModInfo({ modid });
       const latestVersion = modInfo?.mod?.releases
         ?.sort(
           (a, b) => compareVersions(parseVersion(a.modversion), parseVersion(b.modversion)) || 0,

@@ -33,6 +33,7 @@ import {
 } from "@/mainview/components/ui/tooltip";
 import { useInstallations } from "@/mainview/hooks/use-installations";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useRPC } from "@/mainview/hooks/use-rpc";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 
 export const Route = createFileRoute("/installations/")({
@@ -81,7 +82,7 @@ function RouteComponent() {
     },
   });
   const navigate = useNavigate();
-  const { electroview } = Route.useRouteContext();
+  const { rpc } = useRPC();
   const deleteTimeoutRef = useRef<NodeJS.Timeout>(null);
   const downloadingVersions = useDownloadsStore((state) => state.downloadingVersions);
   const addDownloadingVersion = useDownloadsStore((state) => state.addDownloadingVersion);
@@ -98,7 +99,7 @@ function RouteComponent() {
       version: { label: string; value: string };
       startParams: string;
     }) =>
-      electroview.rpc?.request.createInstallation({
+      rpc?.request.createInstallation({
         name: values.name,
         version: values.version.value,
         startParams: values.startParams,
@@ -114,25 +115,25 @@ function RouteComponent() {
   });
 
   const { mutate: cancelDownload } = useMutation({
-    mutationFn: async (version: string) => electroview.rpc?.request.cancelDownload({ version }),
+    mutationFn: async (version: string) => rpc?.request.cancelDownload({ version }),
   });
 
   const { mutate: playInstallation } = useMutation({
-    mutationFn: async (path: string) => electroview.rpc?.request.playWithInstallation({ path }),
+    mutationFn: async (path: string) => rpc?.request.playWithInstallation({ path }),
     onError: (error) => {
       console.error("Failed to play with installation:", error);
     },
   });
 
   const { mutate: openInstallationFolder } = useMutation({
-    mutationFn: async (path: string) => electroview.rpc?.request.openInstallationFolder({ path }),
+    mutationFn: async (path: string) => rpc?.request.openInstallationFolder({ path }),
     onError: (error) => {
       console.error("Failed to open installation folder:", error);
     },
   });
 
   const { mutate: deleteInstallation } = useMutation({
-    mutationFn: async (path: string) => electroview.rpc?.request.deleteInstallation({ path }),
+    mutationFn: async (path: string) => rpc?.request.deleteInstallation({ path }),
     onError: (error) => {
       console.error("Failed to delete installation:", error);
     },
@@ -146,7 +147,7 @@ function RouteComponent() {
   });
 
   const { mutate: downloadVersion } = useMutation({
-    mutationFn: async (version: string) => electroview.rpc?.request.downloadVersion({ version }),
+    mutationFn: async (version: string) => rpc?.request.downloadVersion({ version }),
     onError: (_, version) => {
       // Remove from downloading list on error (including cancellation)
       removeDownloadingVersion(version);
@@ -200,14 +201,14 @@ function RouteComponent() {
         // Remove listeners when download ends (completed, error, or cancelled)
         if (status === "completed" || status === "error" || status === "cancelled") {
           removeDownloadingVersion(version);
-          electroview.rpc?.removeMessageListener("downloadProgress", handleProgress);
-          electroview.rpc?.removeMessageListener("downloadStatus", handleStatus);
+          rpc?.removeMessageListener("downloadProgress", handleProgress);
+          rpc?.removeMessageListener("downloadStatus", handleStatus);
         }
       };
 
       // Listen for progress updates
-      electroview.rpc?.addMessageListener("downloadProgress", handleProgress);
-      electroview.rpc?.addMessageListener("downloadStatus", handleStatus);
+      rpc?.addMessageListener("downloadProgress", handleProgress);
+      rpc?.addMessageListener("downloadStatus", handleStatus);
     },
   });
 

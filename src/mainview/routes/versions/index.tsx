@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useRPC } from "@/mainview/hooks/use-rpc";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 
 export const Route = createFileRoute("/versions/")({
@@ -37,7 +38,7 @@ const variations = {
 const tooltipHandle = TooltipCreateHandle<React.ComponentType>();
 
 function RouteComponent() {
-  const { electroview } = Route.useRouteContext();
+  const { rpc } = useRPC();
   const [selectedVersion, setSelectedVersion] = useState<{
     label: string;
     value: string;
@@ -51,14 +52,14 @@ function RouteComponent() {
   const { data: installedVersions, refetch } = useInstalledVersions();
 
   const { mutate: cancelDownload } = useMutation({
-    mutationFn: async (version: string) => electroview.rpc?.request.cancelDownload({ version }),
+    mutationFn: async (version: string) => rpc?.request.cancelDownload({ version }),
     onSuccess: (_, version) => {
       removeDownloadingVersion(version);
     },
   });
 
   const { mutate: downloadVersion } = useMutation({
-    mutationFn: async (version: string) => electroview.rpc?.request.downloadVersion({ version }),
+    mutationFn: async (version: string) => rpc?.request.downloadVersion({ version }),
     onError: (_, version) => {
       // Remove from downloading list on error (including cancellation)
       removeDownloadingVersion(version);
@@ -109,24 +110,24 @@ function RouteComponent() {
         // Remove listeners when download ends (completed, error, or cancelled)
         if (status === "completed" || status === "error" || status === "cancelled") {
           removeDownloadingVersion(version);
-          electroview.rpc?.removeMessageListener("downloadProgress", handleProgress);
-          electroview.rpc?.removeMessageListener("downloadStatus", handleStatus);
+          rpc?.removeMessageListener("downloadProgress", handleProgress);
+          rpc?.removeMessageListener("downloadStatus", handleStatus);
         }
       };
 
       // Listen for progress updates
-      electroview.rpc?.addMessageListener("downloadProgress", handleProgress);
-      electroview.rpc?.addMessageListener("downloadStatus", handleStatus);
+      rpc?.addMessageListener("downloadProgress", handleProgress);
+      rpc?.addMessageListener("downloadStatus", handleStatus);
     },
   });
 
   const { mutate: openVersionFolder } = useMutation({
-    mutationFn: async (version: string) => electroview.rpc?.request.openVersionFolder({ version }),
+    mutationFn: async (version: string) => rpc?.request.openVersionFolder({ version }),
     onError: (error) => console.error("Failed to open version folder:", error),
   });
 
   const { mutate: deleteVersion } = useMutation({
-    mutationFn: async (version: string) => electroview.rpc?.request.deleteVersion({ version }),
+    mutationFn: async (version: string) => rpc?.request.deleteVersion({ version }),
     onError: (error) => console.error("Failed to delete version:", error),
     onSuccess: (success, version) =>
       success ? refetch() : console.error("Version folder not found for deletion:", version),

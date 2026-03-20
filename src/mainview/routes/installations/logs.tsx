@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import * as v from "valibot";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/mainview/components/ui/scroll-area";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@/mainview/components/ui/tabs";
+import { useRPC } from "@/mainview/hooks/use-rpc";
 
 const SearchSchema = v.object({
   path: v.string(),
@@ -96,7 +97,7 @@ function LogLineComponent({ line }: { line: LogLine }) {
 
 function RouteComponent() {
   const { path } = Route.useSearch();
-  const { electroview } = useRouteContext({ from: "__root__" });
+  const { rpc } = useRPC();
   const [logs, setLogs] = useState<Record<LogType, string>>({
     main: "",
     chat: "",
@@ -113,7 +114,7 @@ function RouteComponent() {
   const { data: initialLogs } = useQuery({
     queryKey: ["logs", path],
     queryFn: async () => {
-      const result = await electroview.rpc?.request.getLogs({ path });
+      const result = await rpc?.request.getLogs({ path });
       return result;
     },
   });
@@ -128,7 +129,7 @@ function RouteComponent() {
   // Start log watcher on mount
   useEffect(() => {
     // Start watching logs
-    void electroview.rpc?.request.startLogWatcher({ path });
+    void rpc?.request.startLogWatcher({ path });
 
     // Set up message listener for live updates
     const handleLogUpdate = ({ installationPath, logType, newContent }: LogUpdateEvent) => {
@@ -140,14 +141,14 @@ function RouteComponent() {
       }
     };
 
-    electroview.rpc?.addMessageListener("logUpdate", handleLogUpdate);
+    rpc?.addMessageListener("logUpdate", handleLogUpdate);
 
     return () => {
       // Clean up on unmount
-      void electroview.rpc?.request.stopLogWatcher({ path });
-      electroview.rpc?.removeMessageListener("logUpdate", handleLogUpdate);
+      void rpc?.request.stopLogWatcher({ path });
+      rpc?.removeMessageListener("logUpdate", handleLogUpdate);
     };
-  }, [path, electroview]);
+  }, [path, rpc]);
 
   // Auto-scroll to bottom when logs change
   useEffect(() => {
