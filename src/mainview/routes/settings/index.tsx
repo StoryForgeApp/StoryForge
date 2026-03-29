@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/mainview/components/ui/button";
 import { Checkbox } from "@/mainview/components/ui/checkbox";
@@ -12,7 +12,7 @@ import { Label } from "@/mainview/components/ui/label";
 import { ScrollArea } from "@/mainview/components/ui/scroll-area";
 import { Separator } from "@/mainview/components/ui/separator";
 import { useTheme, type UserTheme } from "@/mainview/contexts/theme.context";
-import type { ElectroViewContext } from "@/mainview/main";
+import { useRPC } from "@/mainview/hooks/use-rpc";
 
 export const Route = createFileRoute("/settings/")({
   component: RouteComponent,
@@ -31,35 +31,18 @@ const themes: { value: UserTheme; label: string; icon: React.ReactNode }[] = [
   { value: "system", label: "System", icon: <LaptopMinimalCheckIcon className="size-4" /> },
 ];
 
-const emptyConfig: Config = {
-  streamMode: false,
-  versionPath: "",
-  installationsPath: "",
-  modsCachePath: "",
-};
-
-function _makeSettingsForm(defaultValues: Config) {
-  return useForm({ defaultValues });
-}
-type SettingsFormApi = ReturnType<typeof _makeSettingsForm>;
-
-function SettingsForm({
-  form,
-  version,
-  electroview,
-}: {
-  form: SettingsFormApi;
-  version?: string;
-  electroview: ElectroViewContext;
-}) {
+function SettingsForm({ config, version }: { config: Config; version?: string }) {
+  const { rpc } = useRPC();
   const { userTheme, setTheme } = useTheme();
   const queryClient = useQueryClient();
   const [showSaved, setShowSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const form = useForm({ defaultValues: config });
+
   const { mutate: saveConfig, isPending } = useMutation({
     mutationFn: async (values: Config) => {
-      await electroview.rpc?.request.setConfig(values);
+      await rpc?.request.setConfig(values);
       return values;
     },
     onSuccess: (savedValues) => {
@@ -108,12 +91,12 @@ function SettingsForm({
               {(field) => (
                 <div className="flex items-center gap-3">
                   <Checkbox
-                    id="streamMode"
+                    id={field.name}
                     checked={field.state.value}
                     onCheckedChange={(checked) => field.handleChange(checked === true)}
                   />
                   <div>
-                    <Label htmlFor="streamMode">Stream mode</Label>
+                    <Label htmlFor={field.name}>Stream mode</Label>
                     <p className="text-muted-foreground text-xs">Hide server IP addresses</p>
                   </div>
                 </div>
@@ -128,9 +111,9 @@ function SettingsForm({
             <form.Field name="versionPath">
               {(field) => (
                 <div className="space-y-1.5">
-                  <Label htmlFor="versionPath">Game versions</Label>
+                  <Label htmlFor={field.name}>Game versions</Label>
                   <Input
-                    id="versionPath"
+                    id={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -141,9 +124,9 @@ function SettingsForm({
             <form.Field name="installationsPath">
               {(field) => (
                 <div className="space-y-1.5">
-                  <Label htmlFor="installationsPath">Installations</Label>
+                  <Label htmlFor={field.name}>Installations</Label>
                   <Input
-                    id="installationsPath"
+                    id={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -154,9 +137,9 @@ function SettingsForm({
             <form.Field name="modsCachePath">
               {(field) => (
                 <div className="space-y-1.5">
-                  <Label htmlFor="modsCachePath">Mods cache</Label>
+                  <Label htmlFor={field.name}>Mods cache</Label>
                   <Input
-                    id="modsCachePath"
+                    id={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -208,25 +191,21 @@ function SettingsForm({
 }
 
 function RouteComponent() {
-  const { electroview } = useRouteContext({ from: "/settings/" });
+  const { rpc } = useRPC();
 
   const { data: config, isLoading } = useQuery({
     queryKey: ["config"],
-    queryFn: () => electroview.rpc?.request.getConfig(),
-  });
-
-  const form = useForm({
-    defaultValues: config ?? emptyConfig,
+    queryFn: () => rpc?.request.getConfig(),
   });
 
   const { data: version } = useQuery({
     queryKey: ["version"],
-    queryFn: () => electroview.rpc?.request.getVersion(),
+    queryFn: () => rpc?.request.getVersion(),
   });
 
   if (isLoading || !config) {
     return <div className="text-muted-foreground p-6 text-sm">Loading…</div>;
   }
 
-  return <SettingsForm form={form} version={version} electroview={electroview} />;
+  return <SettingsForm config={config} version={version} />;
 }
