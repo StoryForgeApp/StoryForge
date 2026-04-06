@@ -4,3 +4,10 @@ build/
 dist/
 
 .DS_Store
+
+# Local tooling
+.claude/
+.playwright-mcp/
+.vscode/
+CLAUDE.md
+PLAN.md
