@@ -39,6 +39,7 @@ export const utilsController = {
   getStreamMode: async (): Promise<boolean> => {
     return await getStreamMode();
   },
+  /** Returns the current app configuration (stream mode, custom paths). */
   getConfig: async (): Promise<{
     streamMode: boolean;
     versionPath: string;
@@ -51,6 +52,7 @@ export const utilsController = {
     const modsCachePath = await getModsCachePath();
     return { streamMode, versionPath, installationsPath, modsCachePath };
   },
+  /** Persists updated app configuration fields to the config file. */
   setConfig: async (config: {
     streamMode?: boolean;
     versionPath?: string;

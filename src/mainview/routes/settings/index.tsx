@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/mainview/components/ui/button";
 import { Checkbox } from "@/mainview/components/ui/checkbox";
 import { LaptopMinimalCheckIcon } from "@/mainview/components/ui/icons/laptop-minimal-check";
@@ -69,7 +70,10 @@ function SettingsForm({ config, version }: { config: Config; version?: string })
                 variant="outline"
                 size="sm"
                 aria-pressed={userTheme === value}
-                className={`gap-2 ${userTheme === value ? "border-primary text-primary bg-primary/10 font-medium" : ""}`}
+                className={cn(
+                  "gap-2",
+                  userTheme === value && "border-primary text-primary bg-primary/10 font-medium",
+                )}
                 onClick={() => setTheme(value)}
               >
                 {icon}
