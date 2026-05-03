@@ -78,7 +78,7 @@ function RouteComponent() {
     filterDispatch,
   } = useMods(path);
 
-  const { sorting, showOnlyInstalled, search, author, versions } = filterState;
+  const { sorting, showOnlyInstalled, search, author, versions, side } = filterState;
 
   // Mutations
   const { removeMod, cancelDownload, downloadMod, downloadLatest } = useModMutations({
@@ -305,6 +305,8 @@ function RouteComponent() {
             filterDispatch({ type: "SET_SHOW_ONLY_INSTALLED", payload: value })
           }
           installedModsCount={installedMods?.length || 0}
+          side={side}
+          onSideChange={(value) => filterDispatch({ type: "SET_SIDE", payload: value })}
         />
       </div>
 
