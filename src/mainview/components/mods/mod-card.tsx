@@ -58,7 +58,7 @@ export function ModCard({
 }: ModCardProps) {
   const modUrl = mod.urlalias
     ? `https://mods.vintagestory.at/${mod.urlalias}`
-    : `https://mods.vintagestory.at/show/mod/${mod.modid}`;
+    : `https://mods.vintagestory.at/show/mod/${mod.assetid}`;
 
   return (
     <m.div
