@@ -6,6 +6,7 @@ export interface SortingOptionItem {
 }
 
 export interface Mod {
+  assetid: number;
   modid: number;
   modidstrs: string[];
   name: string;
@@ -14,6 +15,7 @@ export interface Mod {
   logo: string | null;
   urlalias: string | null;
   downloads: number;
+  side: "both" | "client" | "server" | null;
   follows: number;
   comments: number;
   trendingpoints: number;
@@ -54,6 +56,7 @@ export interface FilterState {
   search: string;
   author: string;
   versions: { label: string; value: string }[];
+  side: "both" | "client" | "server" | null;
 }
 
 export type FilterAction =
@@ -61,7 +64,8 @@ export type FilterAction =
   | { type: "SET_SHOW_ONLY_INSTALLED"; payload: boolean }
   | { type: "SET_SEARCH"; payload: string }
   | { type: "SET_AUTHOR"; payload: string }
-  | { type: "SET_VERSIONS"; payload: { label: string; value: string }[] };
+  | { type: "SET_VERSIONS"; payload: { label: string; value: string }[] }
+  | { type: "SET_SIDE"; payload: "both" | "client" | "server" | null };
 
 export const sortingOptions: SortingOptionItem[] = [
   { label: "Trending", value: "trending" },
@@ -78,6 +82,7 @@ export const initialFilterState: FilterState = {
   search: "",
   author: "",
   versions: [],
+  side: null,
 };
 
 export const filterReducer = (state: FilterState, action: FilterAction): FilterState => {
@@ -92,6 +97,8 @@ export const filterReducer = (state: FilterState, action: FilterAction): FilterS
       return { ...state, author: action.payload };
     case "SET_VERSIONS":
       return { ...state, versions: action.payload };
+    case "SET_SIDE":
+      return { ...state, side: action.payload };
     default:
       return state;
   }
