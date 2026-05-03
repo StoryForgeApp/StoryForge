@@ -361,7 +361,7 @@ export const modController = {
   },
   fetchMods: async ({
     search,
-    versions = [],
+    versions,
   }: {
     search?: string;
     versions: string[];

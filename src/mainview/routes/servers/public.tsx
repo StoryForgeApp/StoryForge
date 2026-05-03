@@ -1,6 +1,6 @@
 import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ListCheckIcon, LockIcon, Package2Icon, ZapIcon } from "lucide-react";
 import { Variants } from "motion/react";
@@ -23,6 +23,7 @@ import {
   TooltipPopup,
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
+import { useRPC } from "@/mainview/hooks/use-rpc";
 
 export const Route = createFileRoute("/servers/public")({
   component: RouteComponent,
@@ -36,10 +37,10 @@ const variations = {
 } as Variants;
 
 function RouteComponent() {
-  const { electroview } = useRouteContext({ from: "__root__" });
+  const { rpc } = useRPC();
 
   const { data: publicServers } = useQuery({
-    queryFn: () => electroview.rpc?.request.getPublicServers(),
+    queryFn: () => rpc?.request.getPublicServers(),
     queryKey: ["publicServers"],
     staleTime: 1000 * 60, // 1 minute
   });

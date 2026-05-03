@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { UseMutateAsyncFunction, useQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import * as v from "valibot";
+import { useRPC } from "@/mainview/hooks/use-rpc";
 import { Button } from "../ui/button";
 import { PopoverPrimitive } from "../ui/popover";
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select";
@@ -44,10 +44,10 @@ export function ModVersionForm({
   };
   handle: PopoverPrimitive.Handle<React.ComponentType>;
 }) {
-  const { electroview } = useRouteContext({ from: "__root__" });
+  const { rpc } = useRPC();
   const { data: modInfo } = useQuery({
     queryKey: ["modInfo", modid],
-    queryFn: () => electroview.rpc?.request.fetchModInfo({ modid }),
+    queryFn: () => rpc?.request.fetchModInfo({ modid }),
   });
   const defaultValues: { url: string | null } = {
     url:

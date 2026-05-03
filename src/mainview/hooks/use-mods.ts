@@ -1,8 +1,8 @@
 import { useQuery, keepPreviousData, useMutation } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import { useMemo, useReducer } from "react";
 import { initialFilterState, filterReducer, type SortingOption } from "@/mainview/types/mods";
 import useDebounce from "./use-debounce";
+import { useRPC } from "./use-rpc";
 
 interface UseModsReturn {
   // Query results
@@ -31,7 +31,7 @@ interface UseModsReturn {
 }
 
 export function useMods(path: string): UseModsReturn {
-  const { electroview } = useRouteContext({ from: "__root__" });
+  const { rpc } = useRPC();
   const [filterState, filterDispatch] = useReducer(filterReducer, initialFilterState);
 
   const { sorting, showOnlyInstalled, search, author, versions } = filterState;
@@ -44,7 +44,7 @@ export function useMods(path: string): UseModsReturn {
   const { data: installedMods, refetch: refetchInstalledMods } = useQuery({
     queryKey: ["installedMods", path],
     queryFn: () =>
-      electroview.rpc?.request.getInstalledMods({
+      rpc?.request.getInstalledMods({
         path,
       }),
     staleTime: 10 * 60 * 1000,
@@ -54,7 +54,7 @@ export function useMods(path: string): UseModsReturn {
   const { data: modsData } = useQuery({
     queryKey: ["mods", debouncedSearch, debouncedVersions],
     queryFn: () =>
-      electroview.rpc?.request.fetchMods({
+      rpc?.request.fetchMods({
         search: debouncedSearch,
         versions: debouncedVersions.map((v) => v.value),
       }),
@@ -73,7 +73,7 @@ export function useMods(path: string): UseModsReturn {
     queryKey: ["modUpdates", modsString],
     queryFn: async () => {
       if (!modsString) return {};
-      return electroview.rpc?.request.fetchModUpdates({ modsString });
+      return rpc?.request.fetchModUpdates({ modsString });
     },
     enabled: !!modsString,
     staleTime: 5 * 60 * 1000,
@@ -136,7 +136,7 @@ export function useMods(path: string): UseModsReturn {
 
   // Open link mutation
   const { mutate: openLink } = useMutation({
-    mutationFn: async (url: string) => electroview.rpc?.request.openLink({ url }),
+    mutationFn: async (url: string) => rpc?.request.openLink({ url }),
   });
 
   return {

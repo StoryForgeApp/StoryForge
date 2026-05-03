@@ -4,8 +4,12 @@ import { Input as InputPrimitive } from "@base-ui/react/input";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
-type InputProps = Omit<InputPrimitive.Props & React.RefAttributes<HTMLInputElement>, "size"> & {
+type InputProps = Omit<
+  InputPrimitive.Props & React.RefAttributes<HTMLInputElement>,
+  "size" | "style"
+> & {
   size?: "sm" | "default" | "lg" | number;
+  style?: React.CSSProperties;
   unstyled?: boolean;
   nativeInput?: boolean;
 };
@@ -15,6 +19,7 @@ function Input({
   size = "default",
   unstyled = false,
   nativeInput = false,
+  style,
   ...props
 }: InputProps) {
   const inputClassName = cn(
@@ -44,6 +49,7 @@ function Input({
           className={inputClassName}
           data-slot="input"
           size={typeof size === "number" ? size : undefined}
+          style={style}
           {...props}
         />
       ) : (
@@ -51,6 +57,7 @@ function Input({
           className={inputClassName}
           data-slot="input"
           size={typeof size === "number" ? size : undefined}
+          style={style}
           {...props}
         />
       )}

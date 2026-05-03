@@ -1,6 +1,6 @@
 import { useQuery, keepPreviousData, useMutation } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { useRPC } from "./use-rpc";
 
 interface UseModQueriesProps {
   path: string;
@@ -9,12 +9,12 @@ interface UseModQueriesProps {
 }
 
 export function useModQueries({ path, debouncedSearch, debouncedVersions }: UseModQueriesProps) {
-  const { electroview } = useRouteContext({ from: "__root__" });
+  const { rpc } = useRPC();
 
   const { data: installedMods, refetch: refetchInstalledMods } = useQuery({
     queryKey: ["installedMods", path],
     queryFn: () =>
-      electroview.rpc?.request.getInstalledMods({
+      rpc?.request.getInstalledMods({
         path,
       }),
     staleTime: 10 * 60 * 1000,
@@ -23,7 +23,7 @@ export function useModQueries({ path, debouncedSearch, debouncedVersions }: UseM
   const { data: modsData } = useQuery({
     queryKey: ["mods", debouncedSearch, debouncedVersions],
     queryFn: () =>
-      electroview.rpc?.request.fetchMods({
+      rpc?.request.fetchMods({
         search: debouncedSearch,
         versions: debouncedVersions.map((v) => v.value),
       }),
@@ -40,7 +40,7 @@ export function useModQueries({ path, debouncedSearch, debouncedVersions }: UseM
     queryKey: ["modUpdates", modsString],
     queryFn: async () => {
       if (!modsString) return {};
-      return electroview.rpc?.request.fetchModUpdates({ modsString });
+      return rpc?.request.fetchModUpdates({ modsString });
     },
     enabled: !!modsString,
     staleTime: 5 * 60 * 1000,
@@ -62,7 +62,7 @@ export function useModQueries({ path, debouncedSearch, debouncedVersions }: UseM
   }, [installedMods, modsData]);
 
   const { mutate: openLink } = useMutation({
-    mutationFn: async (url: string) => electroview.rpc?.request.openLink({ url }),
+    mutationFn: async (url: string) => rpc?.request.openLink({ url }),
   });
 
   return {
