@@ -103,13 +103,13 @@ export function ModCard({
           </p>
           <p className="text-muted-foreground truncate text-xs">{mod.summary}</p>
           <div className="text-muted-foreground flex items-center gap-1 truncate">
-            <DownloadIcon className="size-3" />
+            <DownloadIcon size={12} />
             <p className="text-xs">{mod.downloads}</p>
             ·
-            <UsersIcon className="size-3" />
+            <UsersIcon size={12} />
             <p className="text-xs">{mod.follows}</p>
             ·
-            <MessageCircleIcon className="size-3" />
+            <MessageCircleIcon size={12} />
             <p className="text-xs">{mod.comments}</p>
             {isDownloading && downloadingMod && <Progress value={downloadingMod.progress} />}
           </div>
