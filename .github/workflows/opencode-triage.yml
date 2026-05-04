@@ -37,6 +37,7 @@ jobs:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
           model: opencode-go/kimi-k2.6
+          use_github_token: true
           prompt: |
             Review this issue. If there's a clear fix or relevant docs:
             - Provide documentation links

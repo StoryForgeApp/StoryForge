@@ -30,4 +30,5 @@ jobs:
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
+          use_github_token: true
           model: opencode-go/kimi-k2.6
