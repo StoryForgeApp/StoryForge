@@ -1,5 +1,5 @@
-import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
 import { useForm } from "@tanstack/react-form";
+import { formatForDisplay, useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -13,11 +13,11 @@ import { VersionCombobox } from "@/mainview/components/comboboxes/version.combob
 import { Badge } from "@/mainview/components/ui/badge";
 import { Button } from "@/mainview/components/ui/button";
 import { ComboboxTrigger, ComboboxValue } from "@/mainview/components/ui/combobox";
+import { ChevronsUpDownIcon } from "@/mainview/components/ui/icons/chevrons-up-down";
 import { ConnectIcon } from "@/mainview/components/ui/icons/connect";
 import { PlusIcon } from "@/mainview/components/ui/icons/plus";
 import { RefreshCWIcon } from "@/mainview/components/ui/icons/refresh-cw";
 import { SearchIcon } from "@/mainview/components/ui/icons/search";
-import { ChevronsUpDownIcon } from "@/mainview/components/ui/icons/chevrons-up-down";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/mainview/components/ui/input-group";
 import { KbdGroup, Kbd } from "@/mainview/components/ui/kbd";
 import { Label } from "@/mainview/components/ui/label";
@@ -43,8 +43,8 @@ const CreateServerForm = v.object({
   }),
   name: v.pipe(v.string(), v.minLength(1, "Name is required")),
   ip: v.pipe(v.string(), v.minLength(1, "IP is required")),
-  port: v.optional(v.string()),
-  password: v.optional(v.string()),
+  port: v.string(),
+  password: v.string(),
 });
 
 function RouteComponent() {
@@ -146,7 +146,7 @@ function RouteComponent() {
             <PlusIcon />
             Add Server
           </Button>
-          <PopoverPopup className="min-w-64 w-(--anchor-width)" align="start">
+          <PopoverPopup className="w-(--anchor-width) min-w-64" align="start">
             <form
               className="space-y-4"
               onSubmit={async (e) => {
