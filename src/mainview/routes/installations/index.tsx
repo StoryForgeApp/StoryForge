@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { PackageSearchIcon, StickyNoteIcon } from "lucide-react";
+import { PackageSearchIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useRef, useState } from "react";
@@ -55,6 +55,341 @@ const CreateInstallationForm = v.object({
   }),
   startParams: v.string(),
 });
+
+const EditInstallationForm = v.object({
+  name: v.pipe(v.string(), v.minLength(1, "Name is required")),
+  version: v.object({
+    label: v.string(),
+    value: v.string(),
+  }),
+  startParams: v.string(),
+});
+
+interface InstallationRowProps {
+  installation: {
+    name: string;
+    path: string;
+    version: string | null;
+    size: number;
+    startParams: string | null;
+  };
+  installedVersions: { version: string; size: number }[] | undefined;
+  downloadingVersions: { version: string; progress: number; speed: number }[];
+  onPlay: (path: string) => void;
+  onCancelDownload: (version: string) => void;
+  onDownload: (version: string) => void;
+  onOpenFolder: (path: string) => void;
+  onUpdate: (values: {
+    path: string;
+    name?: string;
+    version?: string;
+    startParams?: string;
+  }) => void;
+  onDeleteMouseDown: (path: string) => void;
+  onDeleteMouseUp: () => void;
+  onNavigate: (opts: { to: string; search: { path: string } }) => void;
+  tooltipHandle: ReturnType<typeof TooltipCreateHandle>;
+}
+
+function InstallationRow({
+  installation,
+  installedVersions,
+  downloadingVersions,
+  onPlay,
+  onCancelDownload,
+  onDownload,
+  onOpenFolder,
+  onUpdate,
+  onDeleteMouseDown,
+  onDeleteMouseUp,
+  onNavigate,
+  tooltipHandle,
+}: InstallationRowProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(installation.name);
+  const [editVersion, setEditVersion] = useState<{ label: string; value: string } | null>(
+    installation.version ? { label: installation.version, value: installation.version } : null,
+  );
+  const [editStartParams, setEditStartParams] = useState(installation.startParams ?? "");
+
+  const handleStartEdit = () => {
+    setEditName(installation.name);
+    setEditVersion(
+      installation.version ? { label: installation.version, value: installation.version } : null,
+    );
+    setEditStartParams(installation.startParams ?? "");
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    const parsed = v.safeParse(EditInstallationForm, {
+      name: editName,
+      version: editVersion,
+      startParams: editStartParams,
+    });
+    if (!parsed.success) return;
+
+    const newVersionValue = editVersion?.value;
+    const oldVersionValue = installation.version;
+
+    onUpdate({
+      path: installation.path,
+      name: editName !== installation.name ? editName : undefined,
+      version: newVersionValue !== oldVersionValue ? newVersionValue : undefined,
+      startParams:
+        editStartParams !== (installation.startParams ?? "") ? editStartParams : undefined,
+    });
+
+    if (
+      newVersionValue &&
+      newVersionValue !== oldVersionValue &&
+      !installedVersions?.some((v) => v.version === newVersionValue)
+    ) {
+      onDownload(newVersionValue);
+    }
+
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  const downloadInfo = downloadingVersions.find((v) => v.version === installation.version);
+
+  return (
+    <m.div
+      animate="visible"
+      className="border-border hover:bg-accent flex flex-col gap-2 p-3 not-last:border-b"
+      exit="hidden"
+      initial="hidden"
+      key={installation.name}
+      layout
+      layoutId={installation.name}
+      variants={variations}
+    >
+      <m.div
+        layoutId={`installation-${installation.name}`}
+        className="flex items-center justify-between gap-2"
+      >
+        <div className="flex flex-1 flex-col">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <p>{installation.name}</p>
+              <p className="text-muted-foreground text-xs font-thin">
+                ({formatSize(installation.size)})
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {downloadInfo && downloadInfo.progress !== 100 ? (
+                <p className="text-muted-foreground text-xs">{formatSpeed(downloadInfo.speed)}</p>
+              ) : downloadInfo ? (
+                <p className="text-muted-foreground text-xs">Extracting</p>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={
+                installedVersions?.map((i) => i.version).includes(installation.version ?? "")
+                  ? "success"
+                  : "warning"
+              }
+            >
+              {installation.version ?? "Unknown"}
+            </Badge>
+            {downloadInfo && (
+              <>
+                <Progress className="h-1.5 flex-1" value={downloadInfo.progress} />
+                <span className="text-muted-foreground w-10 text-right text-xs">
+                  {downloadInfo.progress}%
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        <Group>
+          {installedVersions?.some((v) => v.version === installation.version) ? (
+            <TooltipTrigger
+              handle={tooltipHandle}
+              payload={() => "Play with installation"}
+              render={
+                <Button
+                  onClick={() => onPlay(installation.path)}
+                  size="icon-sm"
+                  variant="outline"
+                  className="hover:text-green-500"
+                />
+              }
+            >
+              <PlayIcon className="size-3.5" />
+            </TooltipTrigger>
+          ) : downloadInfo ? (
+            <TooltipTrigger
+              handle={tooltipHandle}
+              payload={() => "Cancel download"}
+              render={
+                <Button
+                  onClick={() => installation.version && onCancelDownload(installation.version)}
+                  size="icon-sm"
+                  variant="destructive-outline"
+                />
+              }
+            >
+              <XIcon className="size-3.5" />
+            </TooltipTrigger>
+          ) : (
+            <TooltipTrigger
+              handle={tooltipHandle}
+              payload={() => "Download version"}
+              disabled={!!downloadInfo}
+              render={
+                <Button
+                  onClick={() => installation.version && onDownload(installation.version)}
+                  size="icon-sm"
+                  variant="outline"
+                  className="hover:text-yellow-500"
+                />
+              }
+            >
+              <CloudDownloadIcon className="size-3.5" />
+            </TooltipTrigger>
+          )}
+          <TooltipTrigger
+            handle={tooltipHandle}
+            payload={() => "Manage mods"}
+            render={
+              <Button
+                onClick={() =>
+                  onNavigate({
+                    to: "/installations/mods",
+                    search: { path: installation.path },
+                  })
+                }
+                size="icon-sm"
+                variant="outline"
+              />
+            }
+          >
+            <PackageSearchIcon className="size-3.5" />
+          </TooltipTrigger>
+          <TooltipTrigger
+            handle={tooltipHandle}
+            payload={() => "Read logs"}
+            render={
+              <Button
+                onClick={() =>
+                  onNavigate({
+                    to: "/installations/logs",
+                    search: { path: installation.path },
+                  })
+                }
+                size="icon-sm"
+                variant="outline"
+              />
+            }
+          >
+            <StickyNoteIcon className="size-3.5" />
+          </TooltipTrigger>
+          <TooltipTrigger
+            handle={tooltipHandle}
+            payload={() => "Open installation folder"}
+            render={
+              <Button
+                onClick={() => onOpenFolder(installation.path)}
+                size="icon-sm"
+                variant="outline"
+              />
+            }
+          >
+            <OpenFolderIcon className="size-3.5" />
+          </TooltipTrigger>
+          <TooltipTrigger
+            handle={tooltipHandle}
+            payload={() => "Edit installation"}
+            render={<Button onClick={handleStartEdit} size="icon-sm" variant="outline" />}
+          >
+            <PencilIcon className="size-3.5" />
+          </TooltipTrigger>
+          <TooltipTrigger
+            handle={tooltipHandle}
+            payload={() => "Hold to delete"}
+            render={
+              <Button
+                className="after:clip-inset-full active:after:clip-inset-0 after:bg-destructive relative after:absolute after:inset-0 after:-z-1 after:rounded-e-md after:transition-[clip-path] after:duration-200 after:ease-linear after:content-[''] active:after:duration-[2s]"
+                onMouseDown={() => onDeleteMouseDown(installation.path)}
+                onMouseUp={() => onDeleteMouseUp()}
+                size="icon-sm"
+                variant="outline"
+              />
+            }
+          >
+            <DeleteIcon className="size-3.5" />
+          </TooltipTrigger>
+        </Group>
+      </m.div>
+      <AnimatePresence>
+        {isEditing && (
+          <m.div
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            transition={{ duration: 0.1 }}
+          >
+            <div className="space-y-3 border-t pt-3">
+              <div className="space-y-1">
+                <Label>Name</Label>
+                <InputGroup>
+                  <InputGroupInput value={editName} onChange={(e) => setEditName(e.target.value)} />
+                </InputGroup>
+              </div>
+              <div className="space-y-1">
+                <Label>
+                  Version{" "}
+                  {editVersion &&
+                    !installedVersions?.map((v) => v.version).includes(editVersion.value) && (
+                      <span className="text-muted-foreground text-xs">(Not installed)</span>
+                    )}
+                </Label>
+                <VersionCombobox
+                  value={editVersion}
+                  onValueChange={(v) => setEditVersion(v as { label: string; value: string })}
+                  disableInstalled={false}
+                  trigger={
+                    <ComboboxTrigger
+                      className="w-full justify-between"
+                      render={<Button variant="outline" />}
+                    >
+                      {editVersion?.label || "Select version"}
+                      <ChevronsUpDownIcon className="-me-1!" />
+                    </ComboboxTrigger>
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Start Parameters</Label>
+                <InputGroup>
+                  <InputGroupInput
+                    value={editStartParams}
+                    onChange={(e) => setEditStartParams(e.target.value)}
+                  />
+                </InputGroup>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSave} size="sm" disabled={!editName || !editVersion}>
+                  Save
+                </Button>
+                <Button onClick={handleCancel} size="sm" variant="ghost">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </m.div>
+        )}
+      </AnimatePresence>
+    </m.div>
+  );
+}
 
 function RouteComponent() {
   const defaultValues: {
@@ -212,6 +547,27 @@ function RouteComponent() {
     },
   });
 
+  const { mutate: updateInstallation } = useMutation({
+    mutationFn: async (values: {
+      path: string;
+      name?: string;
+      version?: string;
+      startParams?: string;
+    }) =>
+      rpc?.request.updateInstallation({
+        path: values.path,
+        name: values.name,
+        version: values.version,
+        startParams: values.startParams,
+      }),
+    onError: (error) => {
+      console.error("Failed to update installation:", error);
+    },
+    onSuccess: async () => {
+      await refetch();
+    },
+  });
+
   // Should hold the delete installation button for 2 seconds before actually deleting the installation, to prevent accidental deletions. This is done using CSS clip-path and transition.
   const handleMouseDownDelete = (path: string) => {
     // Start the deletion process after 2 seconds
@@ -250,6 +606,19 @@ function RouteComponent() {
                 {(field) => (
                   <div className="space-y-1">
                     <Label htmlFor={field.name}>Name</Label>
+                    <InputGroup>
+                      <InputGroupInput
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                      />
+                    </InputGroup>
+                  </div>
+                )}
+              </form.Field>
+              <form.Field name="startParams">
+                {(field) => (
+                  <div className="space-y-1">
+                    <Label htmlFor={field.name}>Start Parameters</Label>
                     <InputGroup>
                       <InputGroupInput
                         value={field.state.value}
@@ -325,192 +694,21 @@ function RouteComponent() {
                     compareVersions(parseVersion(b.version ?? ""), parseVersion(a.version ?? "")),
                   )
                   .map((installation) => (
-                    <m.div
-                      animate="visible"
-                      className="border-border hover:bg-accent flex items-center justify-between gap-2 p-3 not-last:border-b"
-                      exit="hidden"
-                      initial="hidden"
+                    <InstallationRow
+                      installation={installation}
+                      installedVersions={installedVersions}
+                      downloadingVersions={downloadingVersions}
                       key={installation.name}
-                      layout
-                      layoutId={installation.name}
-                      variants={variations}
-                    >
-                      <div className="flex flex-1 flex-col">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <m.p layoutId={`installation-${installation.name}`}>
-                              {installation.name}
-                            </m.p>
-                            <p className="text-muted-foreground text-xs font-thin">
-                              ({formatSize(installation.size)})
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {downloadingVersions.some((v) => v.version === installation.version) &&
-                              (downloadingVersions.find((v) => v.version === installation.version)
-                                ?.progress !== 100 ? (
-                                <p className="text-muted-foreground text-xs">
-                                  {formatSpeed(
-                                    downloadingVersions.find(
-                                      (v) => v.version === installation.version,
-                                    )?.speed ?? 0,
-                                  )}
-                                </p>
-                              ) : (
-                                <p className="text-muted-foreground text-xs">Extracting</p>
-                              ))}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={
-                              installedVersions
-                                ?.map((i) => i.version)
-                                .includes(installation.version ?? "")
-                                ? "success"
-                                : "warning"
-                            }
-                          >
-                            {installation.version ?? "Unknown"}
-                          </Badge>
-                          {downloadingVersions.some((v) => v.version === installation.version) && (
-                            <>
-                              <Progress
-                                className="h-1.5 flex-1"
-                                value={
-                                  downloadingVersions.find(
-                                    (v) => v.version === installation.version,
-                                  )?.progress ?? 0
-                                }
-                              />
-                              <span className="text-muted-foreground w-10 text-right text-xs">
-                                {downloadingVersions.find((v) => v.version === installation.version)
-                                  ?.progress ?? 0}
-                                %
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <Group>
-                        {installedVersions?.some((v) => v.version === installation.version) ? (
-                          <TooltipTrigger
-                            handle={tooltipHandle}
-                            payload={() => "Play with installation"}
-                            render={
-                              <Button
-                                onClick={() => playInstallation(installation.path)}
-                                size="icon-sm"
-                                variant="outline"
-                                className="hover:text-green-500"
-                              />
-                            }
-                          >
-                            <PlayIcon className="size-3.5" />
-                          </TooltipTrigger>
-                        ) : downloadingVersions.some((v) => v.version === installation.version) ? (
-                          <TooltipTrigger
-                            handle={tooltipHandle}
-                            payload={() => "Cancel download"}
-                            render={
-                              <Button
-                                onClick={() =>
-                                  installation.version && cancelDownload(installation.version)
-                                }
-                                size="icon-sm"
-                                variant="destructive-outline"
-                              />
-                            }
-                          >
-                            <XIcon className="size-3.5" />
-                          </TooltipTrigger>
-                        ) : (
-                          <TooltipTrigger
-                            handle={tooltipHandle}
-                            payload={() => "Download version"}
-                            disabled={downloadingVersions.some(
-                              (v) => v.version === installation.version,
-                            )}
-                            render={
-                              <Button
-                                onClick={() =>
-                                  installation.version && downloadVersion(installation.version)
-                                }
-                                size="icon-sm"
-                                variant="outline"
-                                className="hover:text-yellow-500"
-                              />
-                            }
-                          >
-                            <CloudDownloadIcon className="size-3.5" />
-                          </TooltipTrigger>
-                        )}
-                        <TooltipTrigger
-                          handle={tooltipHandle}
-                          payload={() => "Manage mods"}
-                          render={
-                            <Button
-                              onClick={() =>
-                                navigate({
-                                  to: "/installations/mods",
-                                  search: { path: installation.path },
-                                })
-                              }
-                              size="icon-sm"
-                              variant="outline"
-                            />
-                          }
-                        >
-                          <PackageSearchIcon className="size-3.5" />
-                        </TooltipTrigger>
-                        <TooltipTrigger
-                          handle={tooltipHandle}
-                          payload={() => "Read logs"}
-                          render={
-                            <Button
-                              onClick={() =>
-                                navigate({
-                                  to: "/installations/logs",
-                                  search: { path: installation.path },
-                                })
-                              }
-                              size="icon-sm"
-                              variant="outline"
-                            />
-                          }
-                        >
-                          <StickyNoteIcon className="size-3.5" />
-                        </TooltipTrigger>
-                        <TooltipTrigger
-                          handle={tooltipHandle}
-                          payload={() => "Open installation folder"}
-                          render={
-                            <Button
-                              onClick={() => openInstallationFolder(installation.path)}
-                              size="icon-sm"
-                              variant="outline"
-                            />
-                          }
-                        >
-                          <OpenFolderIcon className="size-3.5" />
-                        </TooltipTrigger>
-                        <TooltipTrigger
-                          handle={tooltipHandle}
-                          payload={() => "Hold to delete"}
-                          render={
-                            <Button
-                              className="after:clip-inset-full active:after:clip-inset-0 after:bg-destructive relative after:absolute after:inset-0 after:-z-1 after:rounded-e-md after:transition-[clip-path] after:duration-200 after:ease-linear after:content-[''] active:after:duration-[2s]"
-                              onMouseDown={() => handleMouseDownDelete(installation.path)}
-                              onMouseUp={() => handleMouseUpDelete()}
-                              size="icon-sm"
-                              variant="outline"
-                            />
-                          }
-                        >
-                          <DeleteIcon className="size-3.5" />
-                        </TooltipTrigger>
-                      </Group>
-                    </m.div>
+                      onPlay={playInstallation}
+                      onCancelDownload={cancelDownload}
+                      onDownload={downloadVersion}
+                      onOpenFolder={openInstallationFolder}
+                      onUpdate={updateInstallation}
+                      onDeleteMouseDown={handleMouseDownDelete}
+                      onDeleteMouseUp={handleMouseUpDelete}
+                      onNavigate={navigate}
+                      tooltipHandle={tooltipHandle}
+                    />
                   ))}
               </AnimatePresence>
             </div>

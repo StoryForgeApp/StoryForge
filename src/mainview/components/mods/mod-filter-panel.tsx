@@ -5,7 +5,23 @@ import { ComboboxTrigger, ComboboxValue } from "@/mainview/components/ui/combobo
 import { Input } from "@/mainview/components/ui/input";
 import { Label } from "@/mainview/components/ui/label";
 import { Popover, PopoverPopup, PopoverTrigger } from "@/mainview/components/ui/popover";
-import { SelectButton } from "@/mainview/components/ui/select";
+import {
+  Select,
+  SelectButton,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/mainview/components/ui/select";
+
+const sideOptions = [
+  { label: "Show all", value: "all" },
+  { label: "Client-side", value: "client" },
+  { label: "Server-side", value: "server" },
+  { label: "Both", value: "both" },
+];
+
+type ModSide = "both" | "client" | "server";
 
 interface ModFilterPanelProps {
   author: string;
@@ -15,6 +31,8 @@ interface ModFilterPanelProps {
   showOnlyInstalled: boolean;
   onShowOnlyInstalledChange: (value: boolean) => void;
   installedModsCount: number;
+  side: ModSide | null;
+  onSideChange: (value: ModSide | null) => void;
 }
 
 export function ModFilterPanel({
@@ -25,6 +43,8 @@ export function ModFilterPanel({
   showOnlyInstalled,
   onShowOnlyInstalledChange,
   installedModsCount,
+  side,
+  onSideChange,
 }: ModFilterPanelProps) {
   return (
     <Popover>
@@ -46,6 +66,22 @@ export function ModFilterPanel({
             onValueChange={(v) => onVersionsChange(v as { label: string; value: string }[])}
             value={versions}
           />
+          <Select
+            value={side ?? "all"}
+            onValueChange={(v) => onSideChange(v === "all" ? null : (v as ModSide))}
+            items={sideOptions}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectPopup>
+              {sideOptions.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectPopup>
+          </Select>
           <Label>
             <Checkbox
               checked={showOnlyInstalled}

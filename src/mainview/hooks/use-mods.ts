@@ -1,6 +1,12 @@
 import { useQuery, keepPreviousData, useMutation } from "@tanstack/react-query";
 import { useMemo, useReducer } from "react";
-import { initialFilterState, filterReducer, type SortingOption } from "@/mainview/types/mods";
+import {
+  initialFilterState,
+  filterReducer,
+  type SortingOption,
+  Mod,
+  ModUpdate,
+} from "@/mainview/types/mods";
 import useDebounce from "./use-debounce";
 import { useRPC } from "./use-rpc";
 
@@ -8,9 +14,9 @@ interface UseModsReturn {
   // Query results
   installedMods: { name: string; version: string; modid: string; file: string }[] | undefined;
   refetchInstalledMods: () => Promise<unknown>;
-  mods: import("@/mainview/types/mods").Mod[];
-  modsData: import("@/mainview/types/mods").Mod[] | undefined;
-  modUpdates: Record<string, import("@/mainview/types/mods").ModUpdate> | undefined;
+  mods: Mod[];
+  modsData: Mod[] | undefined;
+  modUpdates: Record<string, ModUpdate> | undefined;
   installedModIds: number[];
   openLink: (url: string) => void;
   // Filter state
@@ -19,6 +25,7 @@ interface UseModsReturn {
     showOnlyInstalled: boolean;
     search: string;
     author: string;
+    side: "both" | "client" | "server" | null;
     versions: { label: string; value: string }[];
   };
   filterDispatch: React.Dispatch<
@@ -27,6 +34,7 @@ interface UseModsReturn {
     | { type: "SET_SEARCH"; payload: string }
     | { type: "SET_AUTHOR"; payload: string }
     | { type: "SET_VERSIONS"; payload: { label: string; value: string }[] }
+    | { type: "SET_SIDE"; payload: "both" | "client" | "server" | null }
   >;
 }
 
@@ -34,7 +42,7 @@ export function useMods(path: string): UseModsReturn {
   const { rpc } = useRPC();
   const [filterState, filterDispatch] = useReducer(filterReducer, initialFilterState);
 
-  const { sorting, showOnlyInstalled, search, author, versions } = filterState;
+  const { sorting, showOnlyInstalled, search, author, versions, side } = filterState;
 
   // Debounce the values for queries
   const debouncedSearch = useDebounce(search, 500);
@@ -107,6 +115,9 @@ export function useMods(path: string): UseModsReturn {
     if (showOnlyInstalled) {
       sortedMods = sortedMods.filter((mod) => installedModIds.includes(mod.modid));
     }
+    if (side) {
+      sortedMods = sortedMods.filter((mod) => mod.side === side);
+    }
     switch (sorting) {
       case "trending":
         sortedMods.sort((a, b) => b.trendingpoints - a.trendingpoints);
@@ -132,7 +143,7 @@ export function useMods(path: string): UseModsReturn {
         break;
     }
     return sortedMods;
-  }, [modsData, sorting, showOnlyInstalled, installedModIds, author]);
+  }, [modsData, sorting, showOnlyInstalled, installedModIds, author, side]);
 
   // Open link mutation
   const { mutate: openLink } = useMutation({
