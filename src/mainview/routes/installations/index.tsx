@@ -1,13 +1,20 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { PackageSearchIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
+import {
+  CheckIcon,
+  Loader2Icon,
+  PackageSearchIcon,
+  PencilIcon,
+  StickyNoteIcon,
+} from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as v from "valibot";
 import { compareVersions, formatSize, formatSpeed, parseVersion } from "@/lib/utils";
 import { VersionCombobox } from "@/mainview/components/comboboxes/version.combobox";
+import { InstallDotnetDialog } from "@/mainview/components/dotnet/install-dialog";
 import { Badge } from "@/mainview/components/ui/badge";
 import { Button } from "@/mainview/components/ui/button";
 import { ComboboxTrigger } from "@/mainview/components/ui/combobox";
@@ -89,6 +96,9 @@ interface InstallationRowProps {
   onDeleteMouseUp: () => void;
   onNavigate: (opts: { to: string; search: { path: string } }) => void;
   tooltipHandle: ReturnType<typeof TooltipCreateHandle>;
+  isPlaying: boolean;
+  playError: string | null;
+  playSuccess: boolean;
 }
 
 function InstallationRow({
@@ -104,6 +114,9 @@ function InstallationRow({
   onDeleteMouseUp,
   onNavigate,
   tooltipHandle,
+  isPlaying,
+  playError,
+  playSuccess,
 }: InstallationRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(installation.name);
@@ -210,20 +223,46 @@ function InstallationRow({
         </div>
         <Group>
           {installedVersions?.some((v) => v.version === installation.version) ? (
-            <TooltipTrigger
-              handle={tooltipHandle}
-              payload={() => "Play with installation"}
-              render={
-                <Button
-                  onClick={() => onPlay(installation.path)}
-                  size="icon-sm"
-                  variant="outline"
-                  className="hover:text-green-500"
-                />
-              }
-            >
-              <PlayIcon className="size-3.5" />
-            </TooltipTrigger>
+            isPlaying ? (
+              <TooltipTrigger
+                handle={tooltipHandle}
+                payload={() => "Launching..."}
+                render={<Button size="icon-sm" variant="outline" disabled />}
+              >
+                <Loader2Icon className="size-3.5 animate-spin" />
+              </TooltipTrigger>
+            ) : playError ? (
+              <TooltipTrigger
+                handle={tooltipHandle}
+                payload={() => playError}
+                render={<Button size="icon-sm" variant="destructive-outline" />}
+              >
+                <XIcon className="size-3.5" />
+              </TooltipTrigger>
+            ) : playSuccess ? (
+              <TooltipTrigger
+                handle={tooltipHandle}
+                payload={() => "Launched successfully"}
+                render={<Button size="icon-sm" variant="outline" className="text-green-500" />}
+              >
+                <CheckIcon className="size-3.5" />
+              </TooltipTrigger>
+            ) : (
+              <TooltipTrigger
+                handle={tooltipHandle}
+                payload={() => "Play with installation"}
+                render={
+                  <Button
+                    onClick={() => onPlay(installation.path)}
+                    size="icon-sm"
+                    variant="outline"
+                    className="hover:text-green-500"
+                  />
+                }
+              >
+                <PlayIcon className="size-3.5" />
+              </TooltipTrigger>
+            )
           ) : downloadInfo ? (
             <TooltipTrigger
               handle={tooltipHandle}
@@ -453,10 +492,75 @@ function RouteComponent() {
     mutationFn: async (version: string) => rpc?.request.cancelDownload({ version }),
   });
 
-  const { mutate: playInstallation } = useMutation({
-    mutationFn: async (path: string) => rpc?.request.playWithInstallation({ path }),
+  const [playingPath, setPlayingPath] = useState<string | null>(null);
+  const [playError, setPlayError] = useState<string | null>(null);
+  const [playSuccess, setPlaySuccess] = useState(false);
+  const playingPathRef = useRef<string | null>(null);
+  const [dotnetDialogOpen, setDotnetDialogOpen] = useState(false);
+  const [neededDotnetVersion, setNeededDotnetVersion] = useState<string | null>(null);
+  const pendingPlayPathRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!rpc) return;
+
+    const handlePlayStatus = ({
+      path,
+      status,
+      message,
+    }: {
+      path: string;
+      status: string;
+      message?: string;
+    }) => {
+      if (path !== playingPathRef.current) return;
+
+      if (status === "running") {
+        setPlaySuccess(true);
+        setTimeout(() => {
+          setPlaySuccess(false);
+          setPlayingPath(null);
+          playingPathRef.current = null;
+        }, 2000);
+      } else if (status === "error") {
+        setPlayError(message || "Process failed to start");
+        setPlayingPath(null);
+        playingPathRef.current = null;
+      } else if (status === "exited") {
+        setPlayingPath(null);
+        playingPathRef.current = null;
+      }
+    };
+
+    rpc.addMessageListener("playStatus", handlePlayStatus);
+    return () => {
+      rpc.removeMessageListener("playStatus", handlePlayStatus);
+    };
+  }, [rpc]);
+
+  const { mutate: playInstallation, isPending: isPlaying } = useMutation({
+    mutationFn: async (path: string) => {
+      setPlayingPath(path);
+      playingPathRef.current = path;
+      setPlayError(null);
+      setPlaySuccess(false);
+      return rpc?.request.playWithInstallation({ path });
+    },
+    onSuccess: (result) => {
+      if (result && typeof result === "object" && "status" in result) {
+        if (result.status === "needsDotnet" && "version" in result) {
+          setNeededDotnetVersion(String(result.version));
+          setDotnetDialogOpen(true);
+          pendingPlayPathRef.current = playingPathRef.current;
+          setPlayingPath(null);
+          playingPathRef.current = null;
+        }
+      }
+    },
     onError: (error) => {
       console.error("Failed to play with installation:", error);
+      setPlayError(error instanceof Error ? error.message : "Unknown error");
+      setPlayingPath(null);
+      playingPathRef.current = null;
     },
   });
 
@@ -581,6 +685,20 @@ function RouteComponent() {
 
   const handleMouseUpDelete = () =>
     deleteTimeoutRef.current && clearTimeout(deleteTimeoutRef.current);
+
+  const handleDotnetInstalled = () => {
+    setDotnetDialogOpen(false);
+    const path = pendingPlayPathRef.current;
+    pendingPlayPathRef.current = null;
+    if (path) {
+      playInstallation(path);
+    }
+  };
+
+  const handleDotnetClose = () => {
+    setDotnetDialogOpen(false);
+    pendingPlayPathRef.current = null;
+  };
 
   return (
     <div className="grid h-full grid-rows-[auto_1fr] gap-2 p-2">
@@ -708,6 +826,13 @@ function RouteComponent() {
                       onDeleteMouseUp={handleMouseUpDelete}
                       onNavigate={navigate}
                       tooltipHandle={tooltipHandle}
+                      isPlaying={
+                        (isPlaying || playingPath === installation.path) &&
+                        !playError &&
+                        !playSuccess
+                      }
+                      playError={playingPath === installation.path ? playError : null}
+                      playSuccess={playingPath === installation.path && playSuccess}
                     />
                   ))}
               </AnimatePresence>
@@ -715,6 +840,14 @@ function RouteComponent() {
           )}
         </AnimatePresence>
       </ScrollArea>
+      {neededDotnetVersion && (
+        <InstallDotnetDialog
+          open={dotnetDialogOpen}
+          dotnetVersion={neededDotnetVersion}
+          onClose={handleDotnetClose}
+          onInstalled={handleDotnetInstalled}
+        />
+      )}
       <Tooltip handle={tooltipHandle}>
         {({ payload: Payload }) => (
           <TooltipPopup>{Payload !== undefined && <Payload />}</TooltipPopup>
