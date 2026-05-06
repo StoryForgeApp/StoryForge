@@ -1,10 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { PackageSearchIcon, StickyNoteIcon } from "lucide-react";
+import { CheckIcon, Loader2Icon, PackageSearchIcon, StickyNoteIcon } from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatSize, formatSpeed } from "@/lib/utils";
+import { InstallDotnetDialog } from "@/mainview/components/dotnet/install-dialog";
 import { Badge } from "@/mainview/components/ui/badge";
 import { Button } from "@/mainview/components/ui/button";
 import { Group } from "@/mainview/components/ui/group";
@@ -55,11 +56,78 @@ function RouteComponent() {
     mutationFn: async (version: string) => rpc?.request.cancelDownload({ version }),
   });
 
+  const [playingPath, setPlayingPath] = useState<string | null>(null);
+  const [playError, setPlayError] = useState<string | null>(null);
+  const [playSuccess, setPlaySuccess] = useState(false);
+  const playingPathRef = useRef<string | null>(null);
+
+  const [dotnetDialogOpen, setDotnetDialogOpen] = useState(false);
+  const [neededDotnetVersion, setNeededDotnetVersion] = useState<string | null>(null);
+  const pendingPlayDataRef = useRef<{ path: string; world: string } | null>(null);
+
+  useEffect(() => {
+    if (!rpc) return;
+
+    const handlePlayStatus = ({
+      path,
+      status,
+      message,
+    }: {
+      path: string;
+      status: string;
+      message?: string;
+    }) => {
+      if (path !== playingPathRef.current) return;
+
+      if (status === "running") {
+        setPlaySuccess(true);
+        setTimeout(() => {
+          setPlaySuccess(false);
+          setPlayingPath(null);
+          playingPathRef.current = null;
+        }, 2000);
+      } else if (status === "error") {
+        setPlayError(message || "Process failed to start");
+        setPlayingPath(null);
+        playingPathRef.current = null;
+      } else if (status === "exited") {
+        setPlayingPath(null);
+        playingPathRef.current = null;
+      }
+    };
+
+    rpc.addMessageListener("playStatus", handlePlayStatus);
+    return () => {
+      rpc.removeMessageListener("playStatus", handlePlayStatus);
+    };
+  }, [rpc]);
+
+  const isPlaying = playingPath !== null && !playError && !playSuccess;
+
   const { mutate: playWorld } = useMutation({
-    mutationFn: async ({ path, world }: { path: string; world: string }) =>
-      rpc?.request.playWithInstallation({ path, world }),
+    mutationFn: async ({ path, world }: { path: string; world: string }) => {
+      setPlayingPath(path);
+      playingPathRef.current = path;
+      setPlayError(null);
+      setPlaySuccess(false);
+      pendingPlayDataRef.current = { path, world };
+      return rpc?.request.playWithInstallation({ path, world });
+    },
     onError: (error) => {
       console.error("Failed to play with installation:", error);
+      setPlayError(error instanceof Error ? error.message : "Unknown error");
+      setPlayingPath(null);
+      playingPathRef.current = null;
+    },
+    onSuccess: (result) => {
+      if (result && typeof result === "object" && "status" in result) {
+        if (result.status === "needsDotnet" && "version" in result) {
+          setNeededDotnetVersion(String(result.version));
+          setDotnetDialogOpen(true);
+          setPlayingPath(null);
+          playingPathRef.current = null;
+        }
+      }
     },
   });
 
@@ -163,6 +231,20 @@ function RouteComponent() {
 
   const handleMouseUpDelete = () =>
     deleteTimeoutRef.current && clearTimeout(deleteTimeoutRef.current);
+
+  const handleDotnetInstalled = () => {
+    setDotnetDialogOpen(false);
+    const data = pendingPlayDataRef.current;
+    pendingPlayDataRef.current = null;
+    if (data) {
+      playWorld({ path: data.path, world: data.world });
+    }
+  };
+
+  const handleDotnetClose = () => {
+    setDotnetDialogOpen(false);
+    pendingPlayDataRef.current = null;
+  };
 
   return (
     <div className="grid h-full grid-rows-[auto_1fr] gap-2 p-2">
@@ -282,25 +364,57 @@ function RouteComponent() {
                         {installedVersions?.some(
                           (v) => v.version === world.installation?.version,
                         ) ? (
-                          <TooltipTrigger
-                            handle={tooltipHandle}
-                            payload={() => "Play with world"}
-                            render={
-                              <Button
-                                onClick={() =>
-                                  playWorld({
-                                    path: world.installation?.path,
-                                    world: world.name,
-                                  })
-                                }
-                                size="icon-sm"
-                                variant="outline"
-                                className="hover:text-green-500"
-                              />
-                            }
-                          >
-                            <PlayIcon className="size-3.5" />
-                          </TooltipTrigger>
+                          isPlaying && playingPath === world.installation?.path ? (
+                            <TooltipTrigger
+                              handle={tooltipHandle}
+                              payload={() => "Launching..."}
+                              render={<Button size="icon-sm" variant="outline" disabled />}
+                            >
+                              <Loader2Icon className="size-3.5 animate-spin" />
+                            </TooltipTrigger>
+                          ) : playError && playingPath === world.installation?.path ? (
+                            <TooltipTrigger
+                              handle={tooltipHandle}
+                              payload={() => playError}
+                              render={<Button size="icon-sm" variant="destructive-outline" />}
+                            >
+                              <XIcon className="size-3.5" />
+                            </TooltipTrigger>
+                          ) : playSuccess && playingPath === world.installation?.path ? (
+                            <TooltipTrigger
+                              handle={tooltipHandle}
+                              payload={() => "Launched successfully"}
+                              render={
+                                <Button
+                                  size="icon-sm"
+                                  variant="outline"
+                                  className="text-green-500"
+                                />
+                              }
+                            >
+                              <CheckIcon className="size-3.5" />
+                            </TooltipTrigger>
+                          ) : (
+                            <TooltipTrigger
+                              handle={tooltipHandle}
+                              payload={() => "Play with world"}
+                              render={
+                                <Button
+                                  onClick={() =>
+                                    playWorld({
+                                      path: world.installation?.path,
+                                      world: world.name,
+                                    })
+                                  }
+                                  size="icon-sm"
+                                  variant="outline"
+                                  className="hover:text-green-500"
+                                />
+                              }
+                            >
+                              <PlayIcon className="size-3.5" />
+                            </TooltipTrigger>
+                          )
                         ) : downloadingVersions.some(
                             (v) => v.version === world.installation?.version,
                           ) ? (
@@ -419,6 +533,14 @@ function RouteComponent() {
           <TooltipPopup>{Payload !== undefined && <Payload />}</TooltipPopup>
         )}
       </Tooltip>
+      {neededDotnetVersion && (
+        <InstallDotnetDialog
+          open={dotnetDialogOpen}
+          dotnetVersion={neededDotnetVersion}
+          onClose={handleDotnetClose}
+          onInstalled={handleDotnetInstalled}
+        />
+      )}
     </div>
   );
 }

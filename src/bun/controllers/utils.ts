@@ -5,7 +5,7 @@ import { getStreamMode } from "../utils";
 
 export const utilsController = {
   getVersion: async (): Promise<string> => {
-    const localInfo = await Electrobun.Updater.getLocallocalInfo();
+    const localInfo = await Electrobun.Updater.getLocalInfo();
     return localInfo.version;
   },
   getUpdate: async (): Promise<{

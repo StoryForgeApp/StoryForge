@@ -2,6 +2,7 @@ import { exists, readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { BrowserView, BrowserWindow, Screen, Session, Updater, Utils } from "electrobun/bun";
 import type { StoryForgeRPCType } from "@/shared/rpc";
+import { dotnetController } from "./controllers/dotnet";
 import { installationController } from "./controllers/installations";
 import { logController } from "./controllers/logs";
 import { modController } from "./controllers/mods";
@@ -10,10 +11,10 @@ import { utilsController } from "./controllers/utils";
 import { versionController } from "./controllers/versions";
 import { worldsController } from "./controllers/worlds";
 
-const DEV_SERVER_PORT = 5173;
+const DEV_SERVER_PORT = 3030;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
-const windowConfig = join(Utils.paths.config, "window.json");
+const windowConfig = join(Utils.paths.appData, "window.json");
 const session = Session.defaultSession;
 
 function getDisplayAtCursor() {
@@ -40,6 +41,7 @@ const myWebviewRPC = BrowserView.defineRPC<StoryForgeRPCType>({
       ...utilsController,
       ...worldsController,
       ...logController,
+      ...dotnetController,
     },
   },
   maxRequestTime: 30000,

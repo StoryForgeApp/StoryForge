@@ -51,7 +51,7 @@ bun run dev:hmr
 
 This starts:
 
-- Vite dev server on `http://localhost:5173` with HMR
+- Vite dev server on `http://localhost:3030` with HMR
 - Electrobun in watch mode
 - Changes to React components update instantly without reload
 

@@ -1,7 +1,9 @@
+import { existsSync, readdirSync } from "fs";
 import { exists, mkdir, readdir, readFile, rm, stat, writeFile } from "fs/promises";
 import { join } from "path";
 import { Utils } from "electrobun";
 import { InferRPCSchema } from "@/shared/helper";
+import { mainWindow } from "..";
 import {
   getPlatform,
   getInstallationsPath as getUtilsInstallationsPath,
@@ -9,6 +11,53 @@ import {
   oldInstallationsConfig,
   slugify,
 } from "../utils";
+
+function getDotnetVersion(gameVersion: string): string {
+  const parts = gameVersion.split(".").map(Number);
+  const minor = parts[1] ?? 0;
+  if (minor >= 22) return "10.0";
+  if (minor === 21) return "8.0";
+  return "7.0";
+}
+
+async function checkLocalDotnet(home: string, version: string): Promise<boolean> {
+  const runtimeDir = join(home, "shared", "Microsoft.NETCore.App");
+  try {
+    const dirs = readdirSync(runtimeDir);
+    const matched = dirs.find((d) => d.startsWith(`${version}.`));
+    if (!matched) return false;
+
+    // On macOS, verify architecture matches game binary (always x86_64 for Vintage Story)
+    if (getPlatform() === "mac") {
+      const dylib = join(runtimeDir, matched, "libcoreclr.dylib");
+      if (existsSync(dylib)) {
+        const proc = Bun.spawn(["lipo", "-archs", dylib]);
+        const archs = await new Response(proc.stdout).text();
+        if (!archs.includes("x86_64")) return false;
+      }
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function checkSystemDotnet(version: string): Promise<boolean> {
+  try {
+    const proc = Bun.spawn(["dotnet", "--list-runtimes"]);
+    const output = await new Response(proc.stdout).text();
+    for (const line of output.split("\n")) {
+      const parts = line.trim().split(/\s+/);
+      if (parts[0] === "Microsoft.NETCore.App" && parts[1].startsWith(version)) {
+        return true;
+      }
+    }
+  } catch {
+    // dotnet not in PATH
+  }
+  return false;
+}
 
 async function getDirSize(dirPath: string): Promise<number> {
   const entries = await readdir(dirPath, {
@@ -145,19 +194,27 @@ export const installationController = {
   playWithInstallation: async ({ path, world }: { path: string; world?: string }) => {
     const configPath = join(path, "installation.json");
     if (!(await exists(configPath))) {
-      console.error(`[installations.ts] Installation config not found: ${configPath}`);
-      return;
+      throw new Error(`Installation config not found: ${configPath}`);
     }
     const config = Bun.JSON5.parse(await readFile(configPath, "utf-8")) as {
       name: string;
       version: string;
       startParams?: string;
     };
+
+    const dotnetVersion = getDotnetVersion(config.version);
+    const dotnetHome = join(Utils.paths.home, ".dotnet");
+    const hasSystemDotnet = await checkSystemDotnet(dotnetVersion);
+    const hasLocalDotnet = await checkLocalDotnet(dotnetHome, dotnetVersion);
+
+    if (!hasSystemDotnet && !hasLocalDotnet) {
+      return { status: "needsDotnet", version: dotnetVersion };
+    }
+
     const versionsPath = await getVersionsPath();
     const versionPath = join(versionsPath, config.version);
     if (!(await exists(versionPath))) {
-      console.error(`[installations.ts] Version not found for installation: ${versionPath}`);
-      return;
+      throw new Error(`Version not installed: ${config.version}`);
     }
     const platform = getPlatform();
     const execPath =
@@ -165,22 +222,60 @@ export const installationController = {
         ? join(versionPath, "vintagestory.exe")
         : join(versionPath, "vintagestory");
     if (!(await exists(execPath))) {
-      console.error(
-        `[installations.ts] Vintage Story executable not found for installation: ${versionPath}`,
-      );
-      return;
+      throw new Error(`Vintage Story executable not found for version: ${config.version}`);
     }
     console.log(
       `[installations.ts] Playing with installation: ${config.name} (version: ${config.version})`,
     );
-    // Implement the logic to play with the installation
-    Bun.spawn([
-      execPath,
-      "--dataPath",
-      path,
-      ...(world ? ["-o", world] : []),
-      ...(config.startParams ? config.startParams.split(" ") : []),
-    ]);
+
+    const proc = Bun.spawn(
+      [
+        execPath,
+        "--dataPath",
+        path,
+        ...(world ? ["-o", world] : []),
+        ...(config.startParams ? config.startParams.split(" ") : []),
+      ],
+      {
+        env: {
+          ...process.env,
+          DOTNET_ROOT: dotnetHome,
+          PATH: hasLocalDotnet ? `${dotnetHome}:${process.env.PATH}` : (process.env.PATH ?? ""),
+        },
+      },
+    );
+
+    // Watch for quick failure: if process exits within 5s with non-zero code, send error
+    const WATCH_TIMEOUT = 5000;
+    let timedOut = false;
+
+    const timer = setTimeout(() => {
+      timedOut = true;
+      mainWindow.webview.rpc?.send("playStatus", {
+        path,
+        status: "running",
+      });
+    }, WATCH_TIMEOUT);
+
+    void proc.exited.then((exitCode) => {
+      clearTimeout(timer);
+      if (!timedOut) {
+        if (exitCode === 0) {
+          mainWindow.webview.rpc?.send("playStatus", {
+            path,
+            status: "exited",
+          });
+        } else {
+          mainWindow.webview.rpc?.send("playStatus", {
+            path,
+            status: "error",
+            message: `Game exited with code: ${exitCode}`,
+          });
+        }
+      }
+    });
+
+    return { status: "launched", pid: proc.pid };
   },
   createInstallation: async ({
     name,
@@ -207,4 +302,12 @@ export const installationController = {
   },
 };
 
-export type InstallationController = InferRPCSchema<typeof installationController>;
+export type InstallationController = InferRPCSchema<typeof installationController> & {
+  messages: {
+    playStatus: {
+      path: string;
+      status: "running" | "exited" | "error";
+      message?: string;
+    };
+  };
+};
