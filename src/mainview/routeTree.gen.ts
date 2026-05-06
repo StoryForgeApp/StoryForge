@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LogsRouteImport } from './routes/logs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VersionsIndexRouteImport } from './routes/versions/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
@@ -20,6 +21,11 @@ import { Route as InstallationsWorldsRouteImport } from './routes/installations/
 import { Route as InstallationsModsRouteImport } from './routes/installations/mods'
 import { Route as InstallationsLogsRouteImport } from './routes/installations/logs'
 
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -73,6 +79,7 @@ const InstallationsLogsRoute = InstallationsLogsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/logs': typeof LogsRoute
   '/installations/logs': typeof InstallationsLogsRoute
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/logs': typeof LogsRoute
   '/installations/logs': typeof InstallationsLogsRoute
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/logs': typeof LogsRoute
   '/installations/logs': typeof InstallationsLogsRoute
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/logs'
     | '/installations/logs'
     | '/installations/mods'
     | '/installations/worlds'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/logs'
     | '/installations/logs'
     | '/installations/mods'
     | '/installations/worlds'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/logs'
     | '/installations/logs'
     | '/installations/mods'
     | '/installations/worlds'
@@ -149,6 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LogsRoute: typeof LogsRoute
   InstallationsLogsRoute: typeof InstallationsLogsRoute
   InstallationsModsRoute: typeof InstallationsModsRoute
   InstallationsWorldsRoute: typeof InstallationsWorldsRoute
@@ -162,6 +175,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -237,6 +257,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LogsRoute: LogsRoute,
   InstallationsLogsRoute: InstallationsLogsRoute,
   InstallationsModsRoute: InstallationsModsRoute,
   InstallationsWorldsRoute: InstallationsWorldsRoute,
