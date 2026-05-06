@@ -96,7 +96,7 @@ export const versionController = {
     const abortController = new AbortController();
     const { signal } = abortController;
 
-    console.log("[versions.ts] Starting download for version:", version);
+    logger.info("downloads", "Starting download for version: " + version);
 
     // Check if already downloading
     if (activeDownloads.has(version)) {
@@ -107,23 +107,23 @@ export const versionController = {
     const tempDir = Utils.paths.temp;
     const versionsPath = await getUtilsVersionsPath();
 
-    console.log("[versions.ts] Platform:", platform);
-    console.log("[versions.ts] Temp directory:", tempDir);
-    console.log("[versions.ts] Versions path:", versionsPath);
+    logger.info("downloads", "Platform: " + platform);
+    logger.info("downloads", "Temp directory: " + tempDir);
+    logger.info("downloads", "Versions path: " + versionsPath);
 
     // Ensure directories exist
     if (!(await exists(tempDir))) {
-      console.log("[versions.ts] Creating temp directory");
+      logger.info("downloads", "Creating temp directory");
       await mkdir(tempDir, { recursive: true });
     }
     if (!(await exists(versionsPath))) {
-      console.log("[versions.ts] Creating versions directory");
+      logger.info("downloads", "Creating versions directory");
       await mkdir(versionsPath, { recursive: true });
     }
 
     // Create temp file path
     const tempFilePath = join(tempDir, `storyforge-${version}-${platform}.zip`);
-    console.log("[versions.ts] Temp file path:", tempFilePath);
+    logger.info("downloads", "Temp file path: " + tempFilePath);
     const fileStream = createWriteStream(tempFilePath);
 
     // Track this download for cancellation
@@ -147,21 +147,21 @@ export const versionController = {
         const response = await fetch(`https://vsapi.betterjs.dev/download/${version}/${platform}`, {
           signal,
         });
-        console.log("[versions.ts] API response status:", response.status);
+        logger.info("downloads", "API response status: " + response.status);
         if (!response.ok) {
           throw new Error("Failed to download version");
         }
         const data = await response.json();
-        console.log("[versions.ts] Got download URL:", data.url);
+        logger.info("downloads", "Got download URL: " + data.url);
         const downloadUrl = data.url;
 
         const downloadResponse = await fetch(downloadUrl, { signal });
-        console.log("[versions.ts] Download response status:", downloadResponse.status);
+        logger.info("downloads", "Download response status: " + downloadResponse.status);
         if (!downloadResponse.ok) {
           throw new Error("Failed to download version file");
         }
         const totalSize = parseInt(downloadResponse.headers.get("Content-Length") || "0", 10);
-        console.log("[versions.ts] Total file size:", totalSize);
+        logger.info("downloads", "Total file size: " + totalSize);
         let downloadedSize = 0;
         const SPEED_WINDOW_MS = 1000; // Calculate speed over 1 second window
         const speedWindow: { timestamp: number; bytes: number }[] = [];
@@ -179,7 +179,7 @@ export const versionController = {
           download.reader = reader;
         }
 
-        console.log("[versions.ts] Starting download...");
+        logger.info("downloads", "Starting download...");
         while (true) {
           const { done, value } = await reader.read();
           if (done) {
@@ -188,7 +188,7 @@ export const versionController = {
 
           // Check if download was cancelled (cancelDownload removes from activeDownloads)
           if (!activeDownloads.has(version)) {
-            console.log("[versions.ts] Download was cancelled during streaming");
+            logger.info("downloads", "Download was cancelled during streaming");
             break;
           }
 
@@ -219,16 +219,9 @@ export const versionController = {
           // Throttle progress updates to avoid overwhelming the frontend
           const shouldSendProgress = currentTime - lastProgressSentTime >= PROGRESS_THROTTLE_MS;
           if (shouldSendProgress) {
-            console.log(
-              "[versions.ts] Download progress:",
-              progress,
-              "%, Speed:",
-              speedBps,
-              "bps (window:",
-              windowBytes,
-              "bytes over",
-              windowDuration.toFixed(2),
-              "s)",
+            logger.info(
+              "downloads",
+              `Download progress: ${progress}%, Speed: ${speedBps}bps (window: ${windowBytes}bytes over ${windowDuration.toFixed(2)}s)`,
             );
             mainWindow.webview.rpc?.send("downloadProgress", {
               id: version,
@@ -245,13 +238,13 @@ export const versionController = {
           throw new Error("Download cancelled");
         }
 
-        console.log("[versions.ts] Download complete");
+        logger.info("downloads", "Download complete");
         fileStream.end();
 
         // Wait for file to finish writing
         await new Promise<void>((resolve, reject) => {
           fileStream.on("finish", () => {
-            console.log("[versions.ts] File stream finished");
+            logger.info("downloads", "File stream finished");
             resolve();
           });
           fileStream.on("error", reject);
@@ -265,27 +258,27 @@ export const versionController = {
 
         // Extract to version folder
         const versionFolder = join(versionsPath, version);
-        console.log("[versions.ts] Version folder:", versionFolder);
+        logger.info("downloads", "Version folder: " + versionFolder);
         if (!(await exists(versionFolder))) {
-          console.log("[versions.ts] Creating version folder");
+          logger.info("downloads", "Creating version folder");
           await mkdir(versionFolder, { recursive: true });
         }
 
-        console.log("[versions.ts] Starting extraction...");
+        logger.info("downloads", "Starting extraction...");
         if (platform !== "windows") {
           // Extract using Bun.Archive on Mac & Linux
           const archiveData = await Bun.file(tempFilePath).arrayBuffer();
-          console.log("[versions.ts] Read archive data, size:", archiveData.byteLength);
+          logger.info("downloads", "Read archive data, size: " + archiveData.byteLength);
           const archive = new Bun.Archive(archiveData);
-          console.log("[versions.ts] Created archive object");
+          logger.info("downloads", "Created archive object");
           await archive.extract(versionFolder);
-          console.log("[versions.ts] Extraction complete");
+          logger.info("downloads", "Extraction complete");
 
           // Check if there's a .app folder and extract its contents
           const extractedContents = await readdir(versionFolder);
           const appFolder = extractedContents.find((entry) => entry.endsWith(".app"));
           if (appFolder) {
-            console.log("[versions.ts] Found .app folder:", appFolder);
+            logger.info("downloads", "Found .app folder: " + appFolder);
             const appPath = join(versionFolder, appFolder);
             const appContents = await readdir(appPath);
             for (const entry of appContents) {
@@ -295,7 +288,7 @@ export const versionController = {
             }
             // Remove the .app folder
             await rm(appPath, { recursive: true, force: true });
-            console.log("[versions.ts] Moved .app contents to version folder");
+            logger.info("downloads", "Moved .app contents to version folder");
           }
         } else {
           let allFilesProcessed = false;
@@ -318,9 +311,9 @@ export const versionController = {
         }
 
         // Clean up temp file
-        console.log("[versions.ts] Cleaning up temp file");
+        logger.info("downloads", "Cleaning up temp file");
         await Bun.file(tempFilePath).delete();
-        console.log("[versions.ts] Download and extraction complete!");
+        logger.info("downloads", "Download and extraction complete!");
 
         // Send success status event
         mainWindow.webview.rpc?.send("downloadStatus", {
@@ -330,7 +323,7 @@ export const versionController = {
         });
       } catch (error) {
         if (signal.aborted) {
-          console.log("[versions.ts] Download was cancelled");
+          logger.info("downloads", "Download was cancelled");
           // Send cancelled status event
           mainWindow.webview.rpc?.send("downloadStatus", {
             id: version,
@@ -338,7 +331,7 @@ export const versionController = {
             message: "Download was cancelled",
           });
         } else {
-          console.error("[versions.ts] Error during download/extraction:", error);
+          logger.error("downloads", "Error during download/extraction: " + String(error), error);
           fileStream.destroy();
           // Clean up temp file on error
           try {
