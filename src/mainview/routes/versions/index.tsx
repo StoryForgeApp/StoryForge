@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useLogger } from "@/mainview/hooks/use-logger";
 import { useRPC } from "@/mainview/hooks/use-rpc";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 
@@ -38,6 +39,7 @@ const variations = {
 const tooltipHandle = TooltipCreateHandle<React.ComponentType>();
 
 function RouteComponent() {
+  const log = useLogger();
   const { rpc } = useRPC();
   const [selectedVersion, setSelectedVersion] = useState<{
     label: string;
@@ -96,13 +98,13 @@ function RouteComponent() {
         if (id !== version) return;
 
         if (status === "error") {
-          console.error("Download error for version", version, ":", message);
+          log.error("versions", "Download error", { version, message });
         }
         if (status === "cancelled") {
-          console.log("Download cancelled for version", version);
+          log.info("versions", "Download cancelled", { version });
         }
         if (status === "completed") {
-          console.log("Download completed for version", version);
+          log.info("versions", "Download completed", { version });
           // Refresh installed versions
           await refetch();
         }
@@ -123,14 +125,17 @@ function RouteComponent() {
 
   const { mutate: openVersionFolder } = useMutation({
     mutationFn: async (version: string) => rpc?.request.openVersionFolder({ version }),
-    onError: (error) => console.error("Failed to open version folder:", error),
+    onError: (error) =>
+      log.error("versions", "Failed to open version folder", { error: String(error) }),
   });
 
   const { mutate: deleteVersion } = useMutation({
     mutationFn: async (version: string) => rpc?.request.deleteVersion({ version }),
-    onError: (error) => console.error("Failed to delete version:", error),
+    onError: (error) => log.error("versions", "Failed to delete version", { error: String(error) }),
     onSuccess: (success, version) =>
-      success ? refetch() : console.error("Version folder not found for deletion:", version),
+      success
+        ? refetch()
+        : log.error("versions", "Version folder not found for deletion", { version }),
   });
 
   // Should hold the delete version button for 2 seconds before actually deleting the version, to prevent accidental deletions. This is done using CSS clip-path and transition.
