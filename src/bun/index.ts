@@ -13,7 +13,7 @@ import { worldsController } from "./controllers/worlds";
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
-const windowConfig = join(Utils.paths.config, "window.json");
+const windowConfig = join(Utils.paths.appData, "window.json");
 const session = Session.defaultSession;
 
 function getDisplayAtCursor() {
