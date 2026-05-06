@@ -10,7 +10,7 @@ import { utilsController } from "./controllers/utils";
 import { versionController } from "./controllers/versions";
 import { worldsController } from "./controllers/worlds";
 
-const DEV_SERVER_PORT = 5173;
+const DEV_SERVER_PORT = 3030;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
 const windowConfig = join(Utils.paths.appData, "window.json");
