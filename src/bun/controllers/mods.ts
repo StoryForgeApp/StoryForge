@@ -4,6 +4,7 @@ import { join } from "path";
 import { createZipReader } from "@holmlibs/unzip";
 import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
+import { logger } from "../logger";
 import { getModsCachePath } from "../utils";
 
 interface Mod {
@@ -100,7 +101,7 @@ const activeDownloads = new Map<
 
 export const modController = {
   cancelModDownload: async ({ modid }: { modid: number }): Promise<void> => {
-    console.log("[mods.ts] Cancelling download for modid:", modid);
+    logger.info("mods", `Cancelling download for modid: ${modid}`);
     const download = activeDownloads.get(modid.toString());
     if (download) {
       // Abort the fetch
@@ -124,16 +125,16 @@ export const modController = {
       if (download.tempFilePath) {
         try {
           await Bun.file(download.tempFilePath).delete();
-          console.log("[mods.ts] Cleaned up temp file:", download.tempFilePath);
+          logger.info("mods", `Cleaned up temp file: ${download.tempFilePath}`);
         } catch {
           // Ignore cleanup errors
         }
       }
 
       activeDownloads.delete(modid.toString());
-      console.log("[mods.ts] Download cancelled and cleaned up for modid:", modid);
+      logger.info("mods", `Download cancelled and cleaned up for modid: ${modid}`);
     } else {
-      console.log("[mods.ts] No active download found for modid:", modid);
+      logger.info("mods", `No active download found for modid: ${modid}`);
     }
   },
   installMod: async ({
@@ -160,7 +161,7 @@ export const modController = {
       const cachedModPath = cache[url];
       // Make a symlink of the cached mod to the installation's Mods folder
       await link(join(modsCachePath, cachedModPath), join(installationModsPath, cachedModPath));
-      console.log(`[mods.ts] Installed mod from cache for URL: ${url}`);
+      logger.info("mods", `Installed mod from cache for URL: ${url}`);
       return { success: true, message: "Mod installed from cache", cacheHit: true };
     }
 
@@ -168,7 +169,7 @@ export const modController = {
     const abortController = new AbortController();
     const { signal } = abortController;
 
-    console.log("[mods.ts] Starting download for modid:", modid, "URL:", url);
+    logger.info("mods", `Starting download for modid: ${modid}, URL: ${url}`);
 
     // Check if already downloading
     if (activeDownloads.has(modid.toString())) {
@@ -202,14 +203,14 @@ export const modController = {
     (async () => {
       try {
         const response = await fetch(url, { signal });
-        console.log("[mods.ts] Download response status:", response.status);
+        logger.info("mods", `Download response status: ${response.status}`);
 
         if (!response.ok) {
           throw new Error(`Failed to download mod from URL: ${url}`);
         }
 
         const totalSize = parseInt(response.headers.get("Content-Length") || "0", 10);
-        console.log("[mods.ts] Total file size:", totalSize);
+        logger.info("mods", `Total file size: ${totalSize}`);
         let downloadedSize = 0;
         const SPEED_WINDOW_MS = 1000; // Calculate speed over 1 second window
         const speedWindow: { timestamp: number; bytes: number }[] = [];
@@ -227,7 +228,7 @@ export const modController = {
           download.reader = reader;
         }
 
-        console.log("[mods.ts] Starting download...");
+        logger.info("mods", "Starting download...");
         while (true) {
           const { done, value } = await reader.read();
           if (done) {
@@ -236,7 +237,7 @@ export const modController = {
 
           // Check if download was cancelled (cancelModDownload removes from activeDownloads)
           if (!activeDownloads.has(modid.toString())) {
-            console.log("[mods.ts] Download was cancelled during streaming");
+            logger.info("mods", "Download was cancelled during streaming");
             break;
           }
 
@@ -267,16 +268,9 @@ export const modController = {
           // Throttle progress updates to avoid overwhelming the frontend
           const shouldSendProgress = currentTime - lastProgressSentTime >= PROGRESS_THROTTLE_MS;
           if (shouldSendProgress) {
-            console.log(
-              "[mods.ts] Download progress:",
-              progress,
-              "%, Speed:",
-              speedBps,
-              "bps (window:",
-              windowBytes,
-              "bytes over",
-              windowDuration.toFixed(2),
-              "s)",
+            logger.info(
+              "mods",
+              `Download progress: ${progress}%, Speed: ${speedBps}bps (window: ${windowBytes} bytes over ${windowDuration.toFixed(2)}s)`,
             );
             mainWindow.webview.rpc?.send("downloadModProgress", {
               modid,
@@ -293,13 +287,13 @@ export const modController = {
           throw new Error("Download cancelled");
         }
 
-        console.log("[mods.ts] Download complete");
+        logger.info("mods", "Download complete");
         fileStream.end();
 
         // Wait for file to finish writing
         await new Promise<void>((resolve, reject) => {
           fileStream.on("finish", () => {
-            console.log("[mods.ts] File stream finished");
+            logger.info("mods", "File stream finished");
             resolve();
           });
           fileStream.on("error", reject);
@@ -317,7 +311,7 @@ export const modController = {
 
         // Symlink the mod to the installation's Mods folder
         await link(modFilePath, join(installationModsPath, modFileName));
-        console.log(`[mods.ts] Installed mod from URL and cached it for future use: ${url}`);
+        logger.info("mods", `Installed mod from URL and cached it for future use: ${url}`);
 
         // Send success status event
         mainWindow.webview.rpc?.send("downloadModStatus", {
@@ -327,7 +321,7 @@ export const modController = {
         });
       } catch (error) {
         if (signal.aborted) {
-          console.log("[mods.ts] Download was cancelled");
+          logger.info("mods", "Download was cancelled");
           // Send cancelled status event
           mainWindow.webview.rpc?.send("downloadModStatus", {
             modid,
@@ -335,7 +329,7 @@ export const modController = {
             message: "Download was cancelled",
           });
         } else {
-          console.error("[mods.ts] Error during download:", error);
+          logger.error("mods", "Error during download", error);
           fileStream.destroy();
           // Clean up temp file on error
           try {
@@ -401,7 +395,7 @@ export const modController = {
     }[]
   > => {
     const modsDir = join(path, "Mods");
-    console.log("[mods.ts] Checking for installed mods in:", modsDir);
+    logger.info("mods", `Checking for installed mods in: ${modsDir}`);
     if (!(await exists(modsDir))) {
       return [];
     }
@@ -415,13 +409,13 @@ export const modController = {
           const entryPath = join(modsDir, entry);
           const file = Bun.file(entryPath);
           if (!(await file.exists())) {
-            console.warn("[mods.ts] Mod file does not exist:", entryPath);
+            logger.warn("mods", `Mod file does not exist: ${entryPath}`);
             return null;
           }
           const archive = createZipReader(entryPath);
           const modinfoEntry = archive.getEntry("modinfo.json");
           if (!modinfoEntry) {
-            console.warn("[mods.ts] modinfo.json not found in archive:", entryPath);
+            logger.warn("mods", `modinfo.json not found in archive: ${entryPath}`);
             return null;
           }
           // Convert all keys to lowercase to handle case sensitivity issues in modinfo.json files
@@ -441,7 +435,7 @@ export const modController = {
             file: entry,
           };
         } catch (error) {
-          console.error("[mods.ts] Error reading mod:", entry, error);
+          logger.error("mods", `Error reading mod ${entry}`, error);
           return null;
         }
       }),
@@ -452,10 +446,10 @@ export const modController = {
     const modPath = join(path, "Mods", modzip);
     try {
       await Bun.file(modPath).delete();
-      console.log("[mods.ts] Removed mod:", modPath);
+      logger.info("mods", `Removed mod: ${modPath}`);
       return { success: true };
     } catch (error) {
-      console.error("[mods.ts] Failed to remove mod:", error);
+      logger.error("mods", "Failed to remove mod", error);
       return { success: false, message: error instanceof Error ? error.message : "Unknown error" };
     }
   },

@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useLogger } from "@/mainview/hooks/use-logger";
 import { useRPC } from "@/mainview/hooks/use-rpc";
 import { useWorlds } from "@/mainview/hooks/use-worlds";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
@@ -41,6 +42,7 @@ const variations = {
 const tooltipHandle = TooltipCreateHandle<React.ComponentType>();
 
 function RouteComponent() {
+  const log = useLogger();
   const navigate = useNavigate();
   const { rpc } = useRPC();
   const deleteTimeoutRef = useRef<NodeJS.Timeout>(null);
@@ -114,7 +116,7 @@ function RouteComponent() {
       return rpc?.request.playWithInstallation({ path, world });
     },
     onError: (error) => {
-      console.error("Failed to play with installation:", error);
+      log.error("worlds", "Failed to play with installation", { error: String(error) });
       setPlayError(error instanceof Error ? error.message : "Unknown error");
       setPlayingPath(null);
       playingPathRef.current = null;
@@ -134,20 +136,20 @@ function RouteComponent() {
   const { mutate: openInstallationFolder } = useMutation({
     mutationFn: async (path: string) => rpc?.request.openInstallationFolder({ path }),
     onError: (error) => {
-      console.error("Failed to open installation folder:", error);
+      log.error("worlds", "Failed to open installation folder", { error: String(error) });
     },
   });
 
   const { mutate: deleteWorld } = useMutation({
     mutationFn: async (path: string) => rpc?.request.deleteWorld({ path }),
     onError: (error) => {
-      console.error("Failed to delete world:", error);
+      log.error("worlds", "Failed to delete world", { error: String(error) });
     },
     onSuccess: async (success, path) => {
       if (success) {
         await refetch();
       } else {
-        console.error("World folder not found for deletion:", path);
+        log.error("worlds", "World folder not found for deletion", { path });
       }
     },
   });
@@ -193,13 +195,13 @@ function RouteComponent() {
         if (id !== version) return;
 
         if (status === "error") {
-          console.error("Download error for version", version, ":", message);
+          log.error("worlds", "Download error", { version, message });
         }
         if (status === "cancelled") {
-          console.log("Download cancelled for version", version);
+          log.info("worlds", "Download cancelled", { version });
         }
         if (status === "completed") {
-          console.log("Download completed for version", version);
+          log.info("worlds", "Download completed", { version });
           // Refresh installed versions
           await refetchInstalledVersions();
         }

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { NewspaperIcon } from "lucide-react";
+import { NewspaperIcon, StickyNoteIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -185,6 +185,21 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   >
                     <NewspaperIcon />
                     News
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    render={
+                      <Link
+                        activeProps={{
+                          className: "bg-accent text-accent-foreground",
+                        }}
+                        to="/logs"
+                      />
+                    }
+                  >
+                    <StickyNoteIcon />
+                    Logs
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>

@@ -3,7 +3,9 @@ import { watch } from "fs";
 import { readdir, stat } from "fs/promises";
 import { join } from "path";
 import { InferRPCSchema } from "@/shared/helper";
+import type { LogCategory, LogEntry, LogLevel } from "@/shared/logger";
 import { mainWindow } from "..";
+import { clearLogs, getLogPath, readLogs, writeEntry } from "../logger";
 
 async function getDirSize(dirPath: string): Promise<number> {
   const entries = await readdir(dirPath, {
@@ -186,6 +188,33 @@ export const logController = {
     }
 
     return { success: false, message: "No active watcher found" };
+  },
+
+  writeLog: async ({ entry }: { entry: LogEntry }): Promise<boolean> => {
+    await writeEntry(entry);
+    return true;
+  },
+
+  getAppLogs: async ({
+    level,
+    category,
+    limit,
+  }: {
+    level?: LogLevel;
+    category?: LogCategory;
+    limit?: number;
+  }): Promise<{ entries: LogEntry[] }> => {
+    const entries = await readLogs(level, category, limit ?? 500);
+    return { entries };
+  },
+
+  clearAppLogs: async (): Promise<{ success: boolean }> => {
+    await clearLogs();
+    return { success: true };
+  },
+
+  getLogPath: async (): Promise<string> => {
+    return getLogPath();
   },
 };
 

@@ -1,5 +1,6 @@
 import { useMutation, type UseMutateAsyncFunction } from "@tanstack/react-query";
 import { compareVersions, parseVersion } from "@/lib/utils";
+import { useLogger } from "./use-logger";
 import { useRPC } from "./use-rpc";
 
 export type RemoveModFunction = UseMutateAsyncFunction<
@@ -42,6 +43,7 @@ export function useModMutations({
   removeDownloadingMod,
 }: UseModMutationsProps) {
   const { rpc } = useRPC();
+  const log = useLogger();
 
   const { mutateAsync: removeMod } = useMutation({
     mutationFn: async ({ modzip }: { modzip: string }) =>
@@ -50,7 +52,7 @@ export function useModMutations({
       if (resp?.success) {
         await refetchInstalledMods();
       } else {
-        console.error("Failed to remove mod:", resp?.message);
+        log.error("mods", "Failed to remove mod", resp?.message);
       }
     },
   });
@@ -70,10 +72,9 @@ export function useModMutations({
     },
     onSuccess: async (response, options) => {
       if (response?.cacheHit) {
-        console.log(
-          "Mod installed from cache, skipping download progress tracking for modid:",
-          options.modid,
-        );
+        log.info("mods", "Mod installed from cache, skipping download progress tracking", {
+          modid: options.modid,
+        });
         await refetchInstalledMods();
         return;
       }
@@ -91,13 +92,13 @@ export function useModMutations({
         if (modid !== options.modid) return;
 
         if (status === "error") {
-          console.error("Download error for mod", options.modid, ":", message);
+          log.error("mods", "Download error for mod", { modid: options.modid, message });
         }
         if (status === "cancelled") {
-          console.log("Download cancelled for mod", options.modid);
+          log.info("mods", "Download cancelled for mod", { modid: options.modid });
         }
         if (status === "completed") {
-          console.log("Download completed for mod", options.modid);
+          log.info("mods", "Download completed for mod", { modid: options.modid });
           await refetchInstalledMods();
         }
 

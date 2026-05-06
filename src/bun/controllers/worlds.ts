@@ -3,6 +3,7 @@ import { readdir, stat, access, readFile, exists, rm } from "fs/promises";
 import { join, basename } from "path";
 import * as v from "valibot";
 import { InferRPCSchema } from "@/shared/helper";
+import { logger } from "../logger";
 import { GameData, GameDataSchema, GameDataType } from "../schemas";
 import { getInstallationsPath } from "../utils";
 
@@ -49,7 +50,7 @@ export const worldsController = {
   deleteWorld: async ({ path }: { path: string }): Promise<boolean> => {
     if (await exists(path)) {
       await rm(path, { force: true, recursive: true });
-      console.log(`[worlds.ts] Deleted world file: ${path}`);
+      logger.info("worlds", `Deleted world file: ${path}`);
       return true;
     }
     return false;
