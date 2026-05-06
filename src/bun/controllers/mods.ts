@@ -4,6 +4,7 @@ import { join } from "path";
 import { createZipReader } from "@holmlibs/unzip";
 import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
+import { logger } from "../logger";
 import { getModsCachePath } from "../utils";
 
 interface Mod {
@@ -293,13 +294,13 @@ export const modController = {
           throw new Error("Download cancelled");
         }
 
-        console.log("[mods.ts] Download complete");
+        logger.info("mods", "Download complete");
         fileStream.end();
 
         // Wait for file to finish writing
         await new Promise<void>((resolve, reject) => {
           fileStream.on("finish", () => {
-            console.log("[mods.ts] File stream finished");
+            logger.info("mods", "File stream finished");
             resolve();
           });
           fileStream.on("error", reject);
@@ -317,7 +318,7 @@ export const modController = {
 
         // Symlink the mod to the installation's Mods folder
         await link(modFilePath, join(installationModsPath, modFileName));
-        console.log(`[mods.ts] Installed mod from URL and cached it for future use: ${url}`);
+        logger.info("mods", `Installed mod from URL and cached it for future use: ${url}`);
 
         // Send success status event
         mainWindow.webview.rpc?.send("downloadModStatus", {
@@ -327,7 +328,7 @@ export const modController = {
         });
       } catch (error) {
         if (signal.aborted) {
-          console.log("[mods.ts] Download was cancelled");
+          logger.info("mods", "Download was cancelled");
           // Send cancelled status event
           mainWindow.webview.rpc?.send("downloadModStatus", {
             modid,
@@ -335,7 +336,7 @@ export const modController = {
             message: "Download was cancelled",
           });
         } else {
-          console.error("[mods.ts] Error during download:", error);
+          logger.error("mods", `Error during download: ${error}`);
           fileStream.destroy();
           // Clean up temp file on error
           try {
@@ -401,7 +402,7 @@ export const modController = {
     }[]
   > => {
     const modsDir = join(path, "Mods");
-    console.log("[mods.ts] Checking for installed mods in:", modsDir);
+    logger.info("mods", `Checking for installed mods in: ${modsDir}`);
     if (!(await exists(modsDir))) {
       return [];
     }
@@ -415,13 +416,13 @@ export const modController = {
           const entryPath = join(modsDir, entry);
           const file = Bun.file(entryPath);
           if (!(await file.exists())) {
-            console.warn("[mods.ts] Mod file does not exist:", entryPath);
+            logger.warn("mods", `Mod file does not exist: ${entryPath}`);
             return null;
           }
           const archive = createZipReader(entryPath);
           const modinfoEntry = archive.getEntry("modinfo.json");
           if (!modinfoEntry) {
-            console.warn("[mods.ts] modinfo.json not found in archive:", entryPath);
+            logger.warn("mods", `modinfo.json not found in archive: ${entryPath}`);
             return null;
           }
           // Convert all keys to lowercase to handle case sensitivity issues in modinfo.json files
@@ -441,7 +442,7 @@ export const modController = {
             file: entry,
           };
         } catch (error) {
-          console.error("[mods.ts] Error reading mod:", entry, error);
+          logger.error("mods", `Error reading mod ${entry}: ${error}`);
           return null;
         }
       }),
@@ -452,10 +453,10 @@ export const modController = {
     const modPath = join(path, "Mods", modzip);
     try {
       await Bun.file(modPath).delete();
-      console.log("[mods.ts] Removed mod:", modPath);
+      logger.info("mods", `Removed mod: ${modPath}`);
       return { success: true };
     } catch (error) {
-      console.error("[mods.ts] Failed to remove mod:", error);
+      logger.error("mods", `Failed to remove mod: ${error}`);
       return { success: false, message: error instanceof Error ? error.message : "Unknown error" };
     }
   },

@@ -1,6 +1,7 @@
 import { mkdirSync } from "fs";
 import { join } from "path";
 import { Utils } from "electrobun/bun";
+import { logger } from "./logger";
 
 export const configFile = Bun.file(join(Utils.paths.appData, "storyforge", "config.json"));
 export const oldSettingsFile = Bun.file(
@@ -35,7 +36,7 @@ export async function getStreamMode(): Promise<boolean> {
           2,
         ) || "",
       );
-      console.log(`[utils.ts] Migrated old settings for stream mode`);
+      logger.info("utils", `Migrated old settings for stream mode`);
       return oldSettings.streamMode;
     }
     await configFile.write(
@@ -98,7 +99,7 @@ export async function getVersionsPath(): Promise<string> {
           2,
         ) || "",
       );
-      console.log(`[utils.ts] Migrated old settings for versions path`);
+      logger.info("utils", `Migrated old settings for versions path`);
       return versionsPath;
     }
     mkdirSync(join(Utils.paths.appData, "storyforge"), { recursive: true });
@@ -139,7 +140,7 @@ export async function getInstallationsPath(): Promise<string> {
           2,
         ) || "",
       );
-      console.log(`[utils.ts] Migrated old settings for installations path`);
+      logger.info("utils", `Migrated old settings for installations path`);
       return installationsPath;
     }
     await configFile.write(

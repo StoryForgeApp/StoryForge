@@ -4,6 +4,7 @@ import { join } from "path";
 import { Utils } from "electrobun";
 import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
+import { logger } from "../logger";
 import {
   getPlatform,
   getInstallationsPath as getUtilsInstallationsPath,
@@ -82,7 +83,7 @@ export const installationController = {
   deleteInstallation: async ({ path }: { path: string }): Promise<boolean> => {
     if (await exists(path)) {
       await rm(path, { force: true, recursive: true });
-      console.log(`[installations.ts] Deleted installation folder: ${path}`);
+      logger.info("installations", `Deleted installation folder: ${path}`);
       return true;
     }
     return false;
@@ -108,11 +109,11 @@ export const installationController = {
       if (version !== undefined) config.version = version;
       if (startParams !== undefined) config.startParams = startParams;
       await writeFile(configPath, Bun.JSON5.stringify(config, null, 2) || "");
-      console.log(`[installations.ts] Updated installation config: ${configPath}`);
+      logger.info("installations", `Updated installation config: ${configPath}`);
       return true;
     }
     await writeFile(configPath, Bun.JSON5.stringify({ name, version, startParams }, null, 2) || "");
-    console.log(`[installations.ts] Created installation config: ${configPath}`);
+    logger.info("installations", `Created installation config: ${configPath}`);
     return true;
   },
   getInstallations: async (): Promise<
@@ -150,9 +151,7 @@ export const installationController = {
             configPath,
             Bun.JSON5.stringify({ name, version, startParams }, null, 2) || "",
           );
-          console.log(
-            `[installations.ts] Migrated old installation config for: ${installationPath}`,
-          );
+          logger.info("installations", `Migrated old installation config for: ${installationPath}`);
           return {
             name,
             version,
@@ -224,8 +223,9 @@ export const installationController = {
     if (!(await exists(execPath))) {
       throw new Error(`Vintage Story executable not found for version: ${config.version}`);
     }
-    console.log(
-      `[installations.ts] Playing with installation: ${config.name} (version: ${config.version})`,
+    logger.info(
+      "installations",
+      `Playing with installation: ${config.name} (version: ${config.version})`,
     );
 
     const proc = Bun.spawn(
@@ -289,7 +289,7 @@ export const installationController = {
     const installationsPath = await getUtilsInstallationsPath();
     const newInstallationPath = join(installationsPath, slugify(name));
     if (await exists(newInstallationPath)) {
-      console.error(`[installations.ts] Installation already exists: ${newInstallationPath}`);
+      logger.error("installations", `Installation already exists: ${newInstallationPath}`);
       return false;
     }
     await mkdir(newInstallationPath, { recursive: true });
@@ -297,7 +297,7 @@ export const installationController = {
       join(newInstallationPath, "installation.json"),
       Bun.JSON5.stringify({ name, version, startParams }, null, 2) || "",
     );
-    console.log(`[installations.ts] Created new installation: ${newInstallationPath}`);
+    logger.info("installations", `Created new installation: ${newInstallationPath}`);
     return true;
   },
 };

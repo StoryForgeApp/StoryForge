@@ -6,6 +6,7 @@ import { Utils } from "electrobun";
 import * as v from "valibot";
 import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
+import { logger } from "../logger";
 import { getPlatform, getVersionsPath as getUtilsVersionsPath } from "../utils";
 
 // Track active downloads for cancellation
@@ -40,7 +41,7 @@ async function getDirSize(dirPath: string): Promise<number> {
 
 export const versionController = {
   cancelDownload: async ({ version }: { version: string }): Promise<void> => {
-    console.log("[versions.ts] Cancelling download for version:", version);
+    logger.info("downloads", "Cancelling download for version: " + version);
     const download = activeDownloads.get(version);
     if (download) {
       // Abort the fetch
@@ -64,16 +65,16 @@ export const versionController = {
       if (download.tempFilePath) {
         try {
           await Bun.file(download.tempFilePath).delete();
-          console.log("[versions.ts] Cleaned up temp file:", download.tempFilePath);
+          logger.info("downloads", "Cleaned up temp file: " + download.tempFilePath);
         } catch {
           // Ignore cleanup errors
         }
       }
 
       activeDownloads.delete(version);
-      console.log("[versions.ts] Download cancelled and cleaned up for version:", version);
+      logger.info("downloads", "Download cancelled and cleaned up for version: " + version);
     } else {
-      console.log("[versions.ts] No active download found for version:", version);
+      logger.warn("downloads", "No active download found for version: " + version);
     }
   },
   deleteVersion: async ({ version }: { version: string }): Promise<boolean> => {
@@ -81,7 +82,7 @@ export const versionController = {
     const versionFolder = join(versionsPath, version);
     if (await exists(versionFolder)) {
       await rm(versionFolder, { force: true, recursive: true });
-      console.log(`[versions.ts] Deleted version folder: ${versionFolder}`);
+      logger.info("versions", `Deleted version folder: ${versionFolder}`);
       return true;
     }
     return false;

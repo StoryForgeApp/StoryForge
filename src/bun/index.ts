@@ -10,6 +10,7 @@ import { serverController } from "./controllers/servers";
 import { utilsController } from "./controllers/utils";
 import { versionController } from "./controllers/versions";
 import { worldsController } from "./controllers/worlds";
+import { logger } from "./logger";
 
 const DEV_SERVER_PORT = 3030;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
@@ -53,10 +54,10 @@ async function getMainViewUrl(): Promise<string> {
   if (channel === "dev") {
     try {
       await fetch(DEV_SERVER_URL, { method: "HEAD" });
-      console.log(`HMR enabled: Using Vite dev server at ${DEV_SERVER_URL}`);
+      logger.info("general", `HMR enabled: Using Vite dev server at ${DEV_SERVER_URL}`);
       return DEV_SERVER_URL;
     } catch {
-      console.log("Vite dev server not running. Run 'bun run dev:hmr' for HMR support.");
+      logger.info("general", "Vite dev server not running. Run 'bun run dev:hmr' for HMR support.");
     }
   }
   return "views://mainview/index.html";
@@ -121,4 +122,4 @@ const handleResizeOrMove = async (e: unknown) => {
 mainWindow.on("resize", handleResizeOrMove);
 mainWindow.on("move", handleResizeOrMove);
 
-console.log("Story Forge app started!");
+logger.info("general", "Story Forge app started!");
