@@ -1,4 +1,4 @@
-import { readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { exists, mkdir, readdir, readFile, rm, stat, writeFile } from "fs/promises";
 import { join } from "path";
 import { Utils } from "electrobun";
@@ -20,11 +20,24 @@ function getDotnetVersion(gameVersion: string): string {
   return "7.0";
 }
 
-function checkLocalDotnet(home: string, version: string): boolean {
+async function checkLocalDotnet(home: string, version: string): Promise<boolean> {
   const runtimeDir = join(home, "shared", "Microsoft.NETCore.App");
   try {
     const dirs = readdirSync(runtimeDir);
-    return dirs.some((d) => d.startsWith(`${version}.`));
+    const matched = dirs.find((d) => d.startsWith(`${version}.`));
+    if (!matched) return false;
+
+    // On macOS, verify architecture matches game binary (always x86_64 for Vintage Story)
+    if (getPlatform() === "mac") {
+      const dylib = join(runtimeDir, matched, "libcoreclr.dylib");
+      if (existsSync(dylib)) {
+        const proc = Bun.spawn(["lipo", "-archs", dylib]);
+        const archs = await new Response(proc.stdout).text();
+        if (!archs.includes("x86_64")) return false;
+      }
+    }
+
+    return true;
   } catch {
     return false;
   }
@@ -192,7 +205,7 @@ export const installationController = {
     const dotnetVersion = getDotnetVersion(config.version);
     const dotnetHome = join(Utils.paths.home, ".dotnet");
     const hasSystemDotnet = await checkSystemDotnet(dotnetVersion);
-    const hasLocalDotnet = checkLocalDotnet(dotnetHome, dotnetVersion);
+    const hasLocalDotnet = await checkLocalDotnet(dotnetHome, dotnetVersion);
 
     if (!hasSystemDotnet && !hasLocalDotnet) {
       return { status: "needsDotnet", version: dotnetVersion };

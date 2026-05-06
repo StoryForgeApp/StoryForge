@@ -1,4 +1,4 @@
-import { createWriteStream, mkdirSync, readdirSync } from "fs";
+import { createWriteStream, existsSync, mkdirSync, readdirSync } from "fs";
 import { exists, mkdir } from "fs/promises";
 import { join } from "path";
 import { Utils } from "electrobun";
@@ -10,7 +10,8 @@ const DOTNET_HOME = join(Utils.paths.home, ".dotnet");
 
 function getRid(): string {
   const platform = getPlatform();
-  const arch = process.arch === "arm64" ? "arm64" : "x64";
+  // macOS: Vintage Story is Intel-only, always use x64 regardless of process.arch
+  const arch = platform === "mac" ? "x64" : process.arch === "arm64" ? "arm64" : "x64";
   if (platform === "mac") return `osx-${arch}`;
   if (platform === "linux") return `linux-${arch}`;
   return `win-${arch}`;
@@ -29,11 +30,24 @@ function buildDownloadUrl(version: string, rid: string): string {
   return `https://dotnetcli.azureedge.net/dotnet/Runtime/${version}/dotnet-runtime-${version}-${rid}.tar.gz`;
 }
 
-function checkLocalDotnet(version: string): boolean {
+async function checkLocalDotnet(version: string): Promise<boolean> {
   const runtimeDir = join(DOTNET_HOME, "shared", "Microsoft.NETCore.App");
   try {
     const dirs = readdirSync(runtimeDir);
-    return dirs.some((d) => d.startsWith(`${version}.`));
+    const matched = dirs.find((d) => d.startsWith(`${version}.`));
+    if (!matched) return false;
+
+    // On macOS, verify architecture matches game binary (always x86_64 for Vintage Story)
+    if (getPlatform() === "mac") {
+      const dylib = join(runtimeDir, matched, "libcoreclr.dylib");
+      if (existsSync(dylib)) {
+        const proc = Bun.spawn(["lipo", "-archs", dylib]);
+        const archs = await new Response(proc.stdout).text();
+        if (!archs.includes("x86_64")) return false;
+      }
+    }
+
+    return true;
   } catch {
     return false;
   }
@@ -64,7 +78,7 @@ export const dotnetController = {
       // dotnet not in PATH
     }
 
-    if (checkLocalDotnet(version)) {
+    if (await checkLocalDotnet(version)) {
       return { found: true };
     }
 
@@ -190,7 +204,7 @@ export const dotnetController = {
         // Clean up temp file
         await Bun.file(tempFilePath).delete();
 
-        if (checkLocalDotnet(version)) {
+        if (await checkLocalDotnet(version)) {
           mainWindow.webview.rpc?.send("dotnetStatus", {
             version,
             status: "completed",
