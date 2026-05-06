@@ -16,6 +16,7 @@ import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as ServersIndexRouteImport } from './routes/servers/index'
 import { Route as NewsIndexRouteImport } from './routes/news/index'
 import { Route as InstallationsIndexRouteImport } from './routes/installations/index'
+import { Route as SettingsModsCacheRouteImport } from './routes/settings/mods-cache'
 import { Route as ServersPublicRouteImport } from './routes/servers/public'
 import { Route as InstallationsWorldsRouteImport } from './routes/installations/worlds'
 import { Route as InstallationsModsRouteImport } from './routes/installations/mods'
@@ -56,6 +57,11 @@ const InstallationsIndexRoute = InstallationsIndexRouteImport.update({
   path: '/installations/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsModsCacheRoute = SettingsModsCacheRouteImport.update({
+  id: '/settings/mods-cache',
+  path: '/settings/mods-cache',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServersPublicRoute = ServersPublicRouteImport.update({
   id: '/servers/public',
   path: '/servers/public',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
   '/servers/public': typeof ServersPublicRoute
+  '/settings/mods-cache': typeof SettingsModsCacheRoute
   '/installations/': typeof InstallationsIndexRoute
   '/news/': typeof NewsIndexRoute
   '/servers/': typeof ServersIndexRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
   '/servers/public': typeof ServersPublicRoute
+  '/settings/mods-cache': typeof SettingsModsCacheRoute
   '/installations': typeof InstallationsIndexRoute
   '/news': typeof NewsIndexRoute
   '/servers': typeof ServersIndexRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/installations/mods': typeof InstallationsModsRoute
   '/installations/worlds': typeof InstallationsWorldsRoute
   '/servers/public': typeof ServersPublicRoute
+  '/settings/mods-cache': typeof SettingsModsCacheRoute
   '/installations/': typeof InstallationsIndexRoute
   '/news/': typeof NewsIndexRoute
   '/servers/': typeof ServersIndexRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/installations/mods'
     | '/installations/worlds'
     | '/servers/public'
+    | '/settings/mods-cache'
     | '/installations/'
     | '/news/'
     | '/servers/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/installations/mods'
     | '/installations/worlds'
     | '/servers/public'
+    | '/settings/mods-cache'
     | '/installations'
     | '/news'
     | '/servers'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/installations/mods'
     | '/installations/worlds'
     | '/servers/public'
+    | '/settings/mods-cache'
     | '/installations/'
     | '/news/'
     | '/servers/'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   InstallationsModsRoute: typeof InstallationsModsRoute
   InstallationsWorldsRoute: typeof InstallationsWorldsRoute
   ServersPublicRoute: typeof ServersPublicRoute
+  SettingsModsCacheRoute: typeof SettingsModsCacheRoute
   InstallationsIndexRoute: typeof InstallationsIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
   ServersIndexRoute: typeof ServersIndexRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstallationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/mods-cache': {
+      id: '/settings/mods-cache'
+      path: '/settings/mods-cache'
+      fullPath: '/settings/mods-cache'
+      preLoaderRoute: typeof SettingsModsCacheRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/servers/public': {
       id: '/servers/public'
       path: '/servers/public'
@@ -262,6 +282,7 @@ const rootRouteChildren: RootRouteChildren = {
   InstallationsModsRoute: InstallationsModsRoute,
   InstallationsWorldsRoute: InstallationsWorldsRoute,
   ServersPublicRoute: ServersPublicRoute,
+  SettingsModsCacheRoute: SettingsModsCacheRoute,
   InstallationsIndexRoute: InstallationsIndexRoute,
   NewsIndexRoute: NewsIndexRoute,
   ServersIndexRoute: ServersIndexRoute,
