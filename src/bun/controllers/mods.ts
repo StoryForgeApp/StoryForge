@@ -1,11 +1,11 @@
 import { createWriteStream } from "fs";
-import { exists, link, mkdir, readdir } from "fs/promises";
+import { exists, link, mkdir, readdir, stat, unlink } from "fs/promises";
 import { join } from "path";
 import { createZipReader } from "@holmlibs/unzip";
 import { InferRPCSchema } from "@/shared/helper";
 import { mainWindow } from "..";
 import { logger } from "../logger";
-import { getModsCachePath } from "../utils";
+import { getInstallationsPath, getModsCachePath } from "../utils";
 
 interface Mod {
   modid: number;
@@ -468,6 +468,172 @@ export const modController = {
     const updates = Bun.JSON5.parse(updatesText) as { updates: Record<string, Update> };
     return updates.updates;
     // Implementation for fetching mod updates
+  },
+
+  getCachedMods: async (): Promise<{
+    mods: {
+      file: string;
+      size: number;
+      inUse: boolean;
+      modName?: string;
+    }[];
+    totalSize: number;
+  }> => {
+    const cachePath = await getModsCachePath();
+
+    // Collect inodes from all installations' Mods/ dirs
+    const inUseInodes = new Set<number>();
+    try {
+      const installationsPath = await getInstallationsPath();
+      const installDirs = await readdir(installationsPath);
+      for (const dir of installDirs) {
+        const modsDir = join(installationsPath, dir, "Mods");
+        try {
+          const modFiles = await readdir(modsDir);
+          for (const modFile of modFiles) {
+            if (!modFile.endsWith(".zip")) continue;
+            try {
+              const s = await stat(join(modsDir, modFile));
+              inUseInodes.add(s.ino);
+            } catch {
+              // file removed
+            }
+          }
+        } catch {
+          // no Mods dir
+        }
+      }
+    } catch {
+      // no installations
+    }
+
+    const mods: {
+      file: string;
+      size: number;
+      inUse: boolean;
+      modName?: string;
+    }[] = [];
+    let totalSize = 0;
+
+    try {
+      const files = await readdir(cachePath);
+      for (const file of files) {
+        if (file === "cache.json" || file.startsWith(".")) continue;
+        const filePath = join(cachePath, file);
+        try {
+          const s = await stat(filePath);
+          totalSize += s.size;
+
+          let modName: string | undefined;
+          try {
+            const archive = createZipReader(filePath);
+            const modinfoEntry = archive.getEntry("modinfo.json");
+            if (modinfoEntry) {
+              const text = await modinfoEntry.getText();
+              const manifest = Bun.JSON5.parse(text) as Record<string, unknown>;
+              const name = manifest.name ?? manifest.Name;
+              if (typeof name === "string") modName = name;
+            }
+          } catch {
+            // unable to read modinfo
+          }
+
+          mods.push({
+            file,
+            size: s.size,
+            inUse: inUseInodes.has(s.ino),
+            modName: modName || undefined,
+          });
+        } catch {
+          // file removed mid-scan
+        }
+      }
+    } catch {
+      // no cache dir
+    }
+
+    mods.sort((a, b) => b.size - a.size);
+
+    return { mods, totalSize };
+  },
+
+  removeOrphanedMods: async (): Promise<{
+    removed: number;
+    freedBytes: number;
+  }> => {
+    const cachePath = await getModsCachePath();
+    const cacheFilePath = join(cachePath, "cache.json");
+
+    // Collect inodes from all installations' Mods/ dirs
+    const inUseInodes = new Set<number>();
+    try {
+      const installationsPath = await getInstallationsPath();
+      const installDirs = await readdir(installationsPath);
+      for (const dir of installDirs) {
+        const modsDir = join(installationsPath, dir, "Mods");
+        try {
+          const modFiles = await readdir(modsDir);
+          for (const modFile of modFiles) {
+            if (!modFile.endsWith(".zip")) continue;
+            try {
+              const s = await stat(join(modsDir, modFile));
+              inUseInodes.add(s.ino);
+            } catch {
+              // file removed
+            }
+          }
+        } catch {
+          // no Mods dir
+        }
+      }
+    } catch {
+      // no installations
+    }
+
+    let removed = 0;
+    let freedBytes = 0;
+    const keptCache: Record<string, string> = {};
+
+    // Read existing cache.json
+    let existingCache: Record<string, string> = {};
+    try {
+      existingCache = Bun.JSON5.parse(await Bun.file(cacheFilePath).text()) as Record<
+        string,
+        string
+      >;
+    } catch {
+      // no cache yet
+    }
+
+    try {
+      const files = await readdir(cachePath);
+      for (const file of files) {
+        if (file === "cache.json" || file.startsWith(".")) continue;
+        const filePath = join(cachePath, file);
+        try {
+          const s = await stat(filePath);
+          if (inUseInodes.has(s.ino)) {
+            // Keep this file — copy matching cache.json entries
+            for (const [url, cachedFile] of Object.entries(existingCache)) {
+              if (cachedFile === file) keptCache[url] = cachedFile;
+            }
+          } else {
+            freedBytes += s.size;
+            await unlink(filePath);
+            removed++;
+          }
+        } catch {
+          // file removed mid-scan
+        }
+      }
+
+      // Write updated cache.json
+      await Bun.write(cacheFilePath, Bun.JSON5.stringify(keptCache, null, 2) || "");
+    } catch {
+      // no cache dir
+    }
+
+    return { removed, freedBytes };
   },
 };
 

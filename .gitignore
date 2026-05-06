@@ -3,4 +3,5 @@ artifacts/
 build/
 dist/
 
+.DS_Store.tanstack/tmp/
 .DS_Store
