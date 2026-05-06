@@ -11,6 +11,7 @@ Built with [Electrobun](https://github.com/blackholeconstellation/electrobun), R
 - **Log Viewer**: Real-time log monitoring with syntax highlighting for different log levels
 - **Server Browser**: Discover and connect to public Vintage Story servers
 - **Version Management**: Download and switch between different game versions
+- **Settings**: Configure app theme, stream mode, and custom paths for game data
 - **Modern UI**: Beautiful, responsive interface with dark/light mode support
 
 ## Tech Stack

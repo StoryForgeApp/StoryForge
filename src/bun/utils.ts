@@ -3,12 +3,16 @@ import { join } from "path";
 import { Utils } from "electrobun/bun";
 import { logger } from "./logger";
 
-export const configFile = Bun.file(join(Utils.paths.appData, "storyforge", "config.json"));
-export const oldSettingsFile = Bun.file(
-  join(Utils.paths.appData, "storyforge", "store", "settings.json"),
-);
+export function getConfigFile(): ReturnType<typeof Bun.file> {
+  return Bun.file(join(Utils.paths.appData, "storyforge", "config.json"));
+}
+
+function getOldSettingsFile(): ReturnType<typeof Bun.file> {
+  return Bun.file(join(Utils.paths.appData, "storyforge", "store", "settings.json"));
+}
 
 export async function getOldSettings() {
+  const oldSettingsFile = getOldSettingsFile();
   if (await oldSettingsFile.exists()) {
     const oldConfigText = await oldSettingsFile.text();
     const oldConfig = Bun.JSON5.parse(oldConfigText);
@@ -24,6 +28,7 @@ export async function getOldSettings() {
 }
 
 export async function getStreamMode(): Promise<boolean> {
+  const configFile = getConfigFile();
   if (!(await configFile.exists())) {
     const oldSettings = await getOldSettings();
     if (oldSettings) {
@@ -60,6 +65,7 @@ export async function getStreamMode(): Promise<boolean> {
 }
 
 export async function getModsCachePath(): Promise<string> {
+  const configFile = getConfigFile();
   if (!(await configFile.exists())) {
     mkdirSync(join(Utils.paths.appData, "storyforge"), { recursive: true });
     await configFile.write(
@@ -83,6 +89,7 @@ export async function getModsCachePath(): Promise<string> {
 }
 
 export async function getVersionsPath(): Promise<string> {
+  const configFile = getConfigFile();
   if (!(await configFile.exists())) {
     const oldSettings = await getOldSettings();
     if (oldSettings) {
@@ -124,6 +131,7 @@ export async function getVersionsPath(): Promise<string> {
 }
 
 export async function getInstallationsPath(): Promise<string> {
+  const configFile = getConfigFile();
   if (!(await configFile.exists())) {
     const oldSettings = await getOldSettings();
     if (oldSettings) {
