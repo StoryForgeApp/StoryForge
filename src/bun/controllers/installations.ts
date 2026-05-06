@@ -1,4 +1,4 @@
-import { existsSync } from "fs";
+import { readdirSync } from "fs";
 import { exists, mkdir, readdir, readFile, rm, stat, writeFile } from "fs/promises";
 import { join } from "path";
 import { Utils } from "electrobun";
@@ -21,7 +21,13 @@ function getDotnetVersion(gameVersion: string): string {
 }
 
 function checkLocalDotnet(home: string, version: string): boolean {
-  return existsSync(join(home, "shared", "Microsoft.NETCore.App", version));
+  const runtimeDir = join(home, "shared", "Microsoft.NETCore.App");
+  try {
+    const dirs = readdirSync(runtimeDir);
+    return dirs.some((d) => d.startsWith(`${version}.`));
+  } catch {
+    return false;
+  }
 }
 
 async function checkSystemDotnet(version: string): Promise<boolean> {

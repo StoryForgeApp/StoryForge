@@ -1,4 +1,4 @@
-import { createWriteStream, existsSync, mkdirSync } from "fs";
+import { createWriteStream, mkdirSync, readdirSync } from "fs";
 import { exists, mkdir } from "fs/promises";
 import { join } from "path";
 import { Utils } from "electrobun";
@@ -30,8 +30,13 @@ function buildDownloadUrl(version: string, rid: string): string {
 }
 
 function checkLocalDotnet(version: string): boolean {
-  const runtimePath = join(DOTNET_HOME, "shared", "Microsoft.NETCore.App", version);
-  return existsSync(runtimePath);
+  const runtimeDir = join(DOTNET_HOME, "shared", "Microsoft.NETCore.App");
+  try {
+    const dirs = readdirSync(runtimeDir);
+    return dirs.some((d) => d.startsWith(`${version}.`));
+  } catch {
+    return false;
+  }
 }
 
 const activeDownloads = new Map<string, AbortController>();
