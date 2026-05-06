@@ -1,4 +1,5 @@
 import type { RPCSchema } from "electrobun";
+import { DotnetController } from "@/bun/controllers/dotnet";
 import { InstallationController } from "@/bun/controllers/installations";
 import { LogController } from "@/bun/controllers/logs";
 import { ModController } from "@/bun/controllers/mods";
@@ -10,8 +11,10 @@ import { WorldsController } from "@/bun/controllers/worlds";
 type MessagesType = ServerController["messages"] &
   ModController["messages"] &
   VersionController["messages"] &
+  DotnetController["messages"] &
   LogController["messages"] &
-  UtilsController["messages"];
+  UtilsController["messages"] &
+  InstallationController["messages"];
 
 // src/shared/types.ts
 export type StoryForgeRPCType = {
@@ -23,7 +26,8 @@ export type StoryForgeRPCType = {
       VersionController["requests"] &
       UtilsController["requests"] &
       WorldsController["requests"] &
-      LogController["requests"] & {
+      LogController["requests"] &
+      DotnetController["requests"] & {
         lastRoute: {
           params: undefined;
           response: string;

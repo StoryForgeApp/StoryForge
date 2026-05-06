@@ -2,6 +2,7 @@ import { exists, readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { BrowserView, BrowserWindow, Screen, Session, Updater, Utils } from "electrobun/bun";
 import type { StoryForgeRPCType } from "@/shared/rpc";
+import { dotnetController } from "./controllers/dotnet";
 import { installationController } from "./controllers/installations";
 import { logController } from "./controllers/logs";
 import { modController } from "./controllers/mods";
@@ -40,6 +41,7 @@ const myWebviewRPC = BrowserView.defineRPC<StoryForgeRPCType>({
       ...utilsController,
       ...worldsController,
       ...logController,
+      ...dotnetController,
     },
   },
   maxRequestTime: 30000,
