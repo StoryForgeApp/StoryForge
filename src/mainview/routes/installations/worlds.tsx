@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@/mainview/components/ui/tooltip";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useLogger } from "@/mainview/hooks/use-logger";
 import { useRPC } from "@/mainview/hooks/use-rpc";
 import { useWorlds } from "@/mainview/hooks/use-worlds";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
@@ -41,6 +42,7 @@ const variations = {
 const tooltipHandle = TooltipCreateHandle<React.ComponentType>();
 
 function RouteComponent() {
+  const log = useLogger();
   const navigate = useNavigate();
   const { rpc } = useRPC();
   const deleteTimeoutRef = useRef<NodeJS.Timeout>(null);
@@ -114,7 +116,7 @@ function RouteComponent() {
       return rpc?.request.playWithInstallation({ path, world });
     },
     onError: (error) => {
-      console.error("Failed to play with installation:", error);
+      log.error("worlds", "Failed to play with installation", { error: String(error) });
       setPlayError(error instanceof Error ? error.message : "Unknown error");
       setPlayingPath(null);
       playingPathRef.current = null;
@@ -134,7 +136,7 @@ function RouteComponent() {
   const { mutate: openInstallationFolder } = useMutation({
     mutationFn: async (path: string) => rpc?.request.openInstallationFolder({ path }),
     onError: (error) => {
-      console.error("Failed to open installation folder:", error);
+      log.error("worlds", "Failed to open installation folder", { error: String(error) });
     },
   });
 

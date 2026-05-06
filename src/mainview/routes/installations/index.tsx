@@ -40,6 +40,7 @@ import {
 } from "@/mainview/components/ui/tooltip";
 import { useInstallations } from "@/mainview/hooks/use-installations";
 import { useInstalledVersions } from "@/mainview/hooks/use-installed-versions";
+import { useLogger } from "@/mainview/hooks/use-logger";
 import { useRPC } from "@/mainview/hooks/use-rpc";
 import { useDownloadsStore } from "@/mainview/stores/downloads.store";
 
@@ -431,6 +432,7 @@ function InstallationRow({
 }
 
 function RouteComponent() {
+  const log = useLogger();
   const defaultValues: {
     name: string;
     version: { label: string; value: string } | null;
@@ -447,7 +449,10 @@ function RouteComponent() {
     },
     onSubmit: (form) => {
       if (!form.value.version) return;
-      console.log("Form submitted:", form);
+      log.info("installations", "Form submitted", {
+        name: form.value.name,
+        version: form.value.version?.value,
+      });
       createInstallation({
         name: form.value.name,
         version: form.value.version,
@@ -479,7 +484,7 @@ function RouteComponent() {
         startParams: values.startParams,
       }),
     onError: (error) => {
-      console.error("Failed to create installation:", error);
+      log.error("installations", "Failed to create installation", { error: String(error) });
     },
     onSuccess: async () => {
       form.reset();
@@ -557,7 +562,7 @@ function RouteComponent() {
       }
     },
     onError: (error) => {
-      console.error("Failed to play with installation:", error);
+      log.error("installations", "Failed to play with installation", { error: String(error) });
       setPlayError(error instanceof Error ? error.message : "Unknown error");
       setPlayingPath(null);
       playingPathRef.current = null;
@@ -567,20 +572,20 @@ function RouteComponent() {
   const { mutate: openInstallationFolder } = useMutation({
     mutationFn: async (path: string) => rpc?.request.openInstallationFolder({ path }),
     onError: (error) => {
-      console.error("Failed to open installation folder:", error);
+      log.error("installations", "Failed to open installation folder", { error: String(error) });
     },
   });
 
   const { mutate: deleteInstallation } = useMutation({
     mutationFn: async (path: string) => rpc?.request.deleteInstallation({ path }),
     onError: (error) => {
-      console.error("Failed to delete installation:", error);
+      log.error("installations", "Failed to delete installation", { error: String(error) });
     },
     onSuccess: async (success, path) => {
       if (success) {
         await refetch();
       } else {
-        console.error("Installation folder not found for deletion:", path);
+        log.error("installations", "Installation folder not found for deletion", { path });
       }
     },
   });
@@ -626,13 +631,13 @@ function RouteComponent() {
         if (id !== version) return;
 
         if (status === "error") {
-          console.error("Download error for version", version, ":", message);
+          log.error("installations", "Download error", { version, message });
         }
         if (status === "cancelled") {
-          console.log("Download cancelled for version", version);
+          log.info("installations", "Download cancelled", { version });
         }
         if (status === "completed") {
-          console.log("Download completed for version", version);
+          log.info("installations", "Download completed", { version });
           // Refresh installed versions
           await refetchInstalledVersions();
         }
@@ -665,7 +670,7 @@ function RouteComponent() {
         startParams: values.startParams,
       }),
     onError: (error) => {
-      console.error("Failed to update installation:", error);
+      log.error("installations", "Failed to update installation", { error: String(error) });
     },
     onSuccess: async () => {
       await refetch();

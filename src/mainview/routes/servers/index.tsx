@@ -24,6 +24,7 @@ import { Label } from "@/mainview/components/ui/label";
 import { Popover, PopoverPopup, PopoverTrigger } from "@/mainview/components/ui/popover";
 import { ScrollArea } from "@/mainview/components/ui/scroll-area";
 import { SelectButton } from "@/mainview/components/ui/select";
+import { useLogger } from "@/mainview/hooks/use-logger";
 import { useRPC } from "@/mainview/hooks/use-rpc";
 import { useServers } from "@/mainview/hooks/use-servers";
 
@@ -53,6 +54,7 @@ function RouteComponent() {
     from: "__root__",
   });
   const { rpc } = useRPC();
+  const log = useLogger();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -93,7 +95,7 @@ function RouteComponent() {
       password?: string;
     }) => rpc?.request.addServer(values),
     onError: (error) => {
-      console.error("Failed to add server:", error);
+      log.error("servers", "Failed to add server", error);
     },
     onSuccess: async () => {
       form.reset();
