@@ -12,7 +12,7 @@ import { versionController } from "./controllers/versions";
 import { worldsController } from "./controllers/worlds";
 import { logger } from "./logger";
 
-const DEV_SERVER_PORT = 3030;
+const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
 const windowConfig = join(Utils.paths.appData, "window.json");
