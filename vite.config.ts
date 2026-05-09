@@ -24,7 +24,7 @@ export default defineConfig({
   },
   root: "src/mainview",
   server: {
-    port: 3030,
+    port: 5173,
     strictPort: true,
   },
 });
