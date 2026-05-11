@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { RefreshCwIcon, StickyNoteIcon, Trash2Icon } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Badge } from "@/mainview/components/ui/badge";
 import { Button } from "@/mainview/components/ui/button";
 import { Group } from "@/mainview/components/ui/group";
@@ -68,6 +69,7 @@ function RouteComponent() {
   const { rpc } = useRPC();
   const [levelFilter, setLevelFilter] = useState<LogLevel | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<LogCategory | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["appLogs", levelFilter, categoryFilter],
@@ -111,6 +113,13 @@ function RouteComponent() {
     },
     {} as Record<string, number>,
   );
+
+  const virtualizer = useVirtualizer({
+    count: entries.length,
+    estimateSize: () => 32,
+    getScrollElement: () => scrollRef.current,
+    overscan: 10,
+  });
 
   const categoryItems = [
     { value: "all", label: "All categories" },
@@ -175,23 +184,34 @@ function RouteComponent() {
           </Select>
         </div>
       </div>
-      <ScrollArea className="flex-1">
-        <div className="p-3">
+      <ScrollArea className="flex-1" scrollFade viewportRef={scrollRef}>
+        <div className="relative p-3" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {entries.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center text-sm">No log entries</p>
           ) : (
-            entries.map((entry: LogEntry, i: number) => (
-              <div key={i} className="flex gap-3 border-b py-1.5 font-mono text-xs last:border-0">
-                <span className="text-muted-foreground shrink-0">{formatTs(entry.ts)}</span>
-                <Badge variant={getLevelBadgeVariant(entry.level)} className="shrink-0 text-xs">
-                  {entry.level}
-                </Badge>
-                <Badge variant="outline" className="shrink-0 text-xs">
-                  {entry.category}
-                </Badge>
-                <span className={getLevelColor(entry.level)}>{entry.message}</span>
-              </div>
-            ))
+            virtualizer.getVirtualItems().map((virtualRow) => {
+              const entry: LogEntry = entries[virtualRow.index];
+              if (!entry) return null;
+              return (
+                <div
+                  key={virtualRow.index}
+                  className="absolute top-0 left-0 flex w-full gap-3 border-b py-1.5 font-mono text-xs"
+                  style={{
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <span className="text-muted-foreground shrink-0">{formatTs(entry.ts)}</span>
+                  <Badge variant={getLevelBadgeVariant(entry.level)} className="shrink-0 text-xs">
+                    {entry.level}
+                  </Badge>
+                  <Badge variant="outline" className="shrink-0 text-xs">
+                    {entry.category}
+                  </Badge>
+                  <span className={getLevelColor(entry.level)}>{entry.message}</span>
+                </div>
+              );
+            })
           )}
         </div>
       </ScrollArea>
