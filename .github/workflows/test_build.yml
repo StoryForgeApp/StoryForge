@@ -1,0 +1,33 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [test/windows-icon]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [
+            windows-latest, # Windows 2022 x64 runner
+          ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install rcedit (Windows only)
+        if: startsWith(matrix.os, 'windows')
+        run: bun install -g rcedit
+
+      - name: Build app
+        run: bun run build:dev
