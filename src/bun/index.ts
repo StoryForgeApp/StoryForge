@@ -101,6 +101,8 @@ export const mainWindow = new BrowserWindow({
   title: "Story Forge",
   titleBarStyle: "hidden",
   transparent: true,
+  // Use cef render on Linux
+  renderer: process.platform === "linux" ? "cef" : "native",
   url,
 });
 
