@@ -34,7 +34,7 @@
     "@tanstack/react-virtual": "^3.13.24",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "electrobun": "1.18.1",
+    "electrobun": "^1.18.4-beta.3",
     "fflate": "^0.8.2",
     "lucide-react": "^1.14.0",
     "motion": "^12.38.0",
@@ -69,8 +69,5 @@
   "lint-staged": {
     "*": "oxfmt --no-error-on-unmatched-pattern",
     "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix"
-  },
-  "patchedDependencies": {
-    "electrobun@1.18.1": "patches/electrobun@1.18.1.patch"
   }
 }
