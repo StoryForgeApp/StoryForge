@@ -29,5 +29,10 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: bun install -g rcedit
 
+      - name: Copy rcedit into electrobun
+        if: startsWith(matrix.os, 'windows')
+        run: mkdir -p node_modules/electrobun/node_modules && cp -r node_modules/rcedit node_modules/electrobun/node_modules/
+        shell: bash
+
       - name: Build app
         run: bun run build:dev
