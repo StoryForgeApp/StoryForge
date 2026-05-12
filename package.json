@@ -69,8 +69,5 @@
   "lint-staged": {
     "*": "oxfmt --no-error-on-unmatched-pattern",
     "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix"
-  },
-  "patchedDependencies": {
-    "electrobun@1.18.1": "patches/electrobun@1.18.1.patch"
   }
 }
